@@ -1,0 +1,22 @@
+import { create } from 'zustand';
+import type { ToastItem } from '../components/Toast';
+
+interface ToastState {
+  toasts: ToastItem[];
+  addToast: (message: string, type?: 'success' | 'error') => void;
+  removeToast: (id: string) => void;
+}
+
+export const useToastStore = create<ToastState>((set) => ({
+  toasts: [],
+  addToast: (message, type = 'success') => {
+    const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
+    setTimeout(() => {
+      set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+    }, 3000);
+  },
+  removeToast: (id) => {
+    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
+  },
+}));
