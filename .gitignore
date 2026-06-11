@@ -1,0 +1,11 @@
+/.idea/
+/base/
+.env
+.env.*
+!.env.example
+/.dist/
+*.sqlite
+*.sqlite-*
+*.md
+node_modules/
+dist/
