@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useToastStore } from '@/stores/toastStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useFavoritesStore } from '@/stores/favoritesStore';
 import { catalogService } from '@/services/CatalogService';
 import { inventoryService } from '@/services/InventoryService';
 import type { Product, Sku } from '@/domain/Product';
@@ -91,12 +93,20 @@ export function ProductPage() {
   const [addingToCart, setAddingToCart] = useState(false);
   const [showSizeError, setShowSizeError] = useState(false);
   const [isFavorited, setIsFavorited] = useState(false);
+  const { isAuthenticated, token } = useAuthStore();
+  const { addFavorite, removeFavorite, fetchFavorites } = useFavoritesStore();
 
   useEffect(() => {
-    if (product?.id) {
+    if (!product?.id) return;
+    if (isAuthenticated && token) {
+      fetchFavorites().then(() => {
+        const items = useFavoritesStore.getState().items;
+        setIsFavorited(items.some((i) => i.slug === product.slug));
+      });
+    } else {
       setIsFavorited(getFavorites().includes(product.id));
     }
-  }, [product?.id]);
+  }, [product?.id, product?.slug, isAuthenticated, token, fetchFavorites]);
 
   useEffect(() => {
     if (!slug) return;
@@ -215,19 +225,35 @@ export function ProductPage() {
     }
   }, [product, selectedSize, addItem, fetchCart, addToast]);
 
-  const toggleFavorite = useCallback(() => {
+  const toggleFavorite = useCallback(async () => {
     if (!product) return;
-    const favorites = getFavorites();
-    if (favorites.includes(product.id)) {
-      setFavorites(favorites.filter((id) => id !== product.id));
-      setIsFavorited(false);
-      addToast('Removed from favorites', 'success');
+    if (isAuthenticated && token) {
+      try {
+        if (isFavorited) {
+          await removeFavorite(String(product.id));
+          setIsFavorited(false);
+          addToast('Removed from favorites', 'success');
+        } else {
+          await addFavorite(String(product.id));
+          setIsFavorited(true);
+          addToast('Added to favorites', 'success');
+        }
+      } catch {
+        addToast('Failed to update favorites', 'error');
+      }
     } else {
-      setFavorites([...favorites, product.id]);
-      setIsFavorited(true);
-      addToast('Added to favorites', 'success');
+      const favorites = getFavorites();
+      if (favorites.includes(product.id)) {
+        setFavorites(favorites.filter((id) => id !== product.id));
+        setIsFavorited(false);
+        addToast('Removed from favorites', 'success');
+      } else {
+        setFavorites([...favorites, product.id]);
+        setIsFavorited(true);
+        addToast('Added to favorites', 'success');
+      }
     }
-  }, [product, addToast]);
+  }, [product, isFavorited, isAuthenticated, token, addFavorite, removeFavorite, addToast]);
 
   const handleChangeStore = useCallback(() => {
     setCurrentNodeIndex((idx) => {
