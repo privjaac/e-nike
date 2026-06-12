@@ -12,6 +12,7 @@ export const catalogService = {
     if (filters?.search) params.set('search', filters.search);
     if (filters?.size) params.set('size', filters.size);
     if (filters?.sale) params.set('sale', 'true');
+    if (filters?.isMemberOnly) params.set('isMemberOnly', 'true');
     if (filters?.page) params.set('page', String(filters.page));
     if (filters?.limit) params.set('limit', String(filters.limit));
 

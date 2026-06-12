@@ -13,6 +13,7 @@ export class CatalogRepository implements ICatalogRepository {
     search?: string;
     size?: string;
     sale?: boolean;
+    isMemberOnly?: boolean;
     limit: number;
     offset: number;
   }): Promise<Product[]> {
@@ -29,6 +30,7 @@ export class CatalogRepository implements ICatalogRepository {
       );
     }
     if (filters.sale) conditions.push(isNotNull(products.salePrice));
+    if (filters.isMemberOnly) conditions.push(eq(products.isMemberOnly, true));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -41,7 +43,7 @@ export class CatalogRepository implements ICatalogRepository {
       .all() as Product[];
   }
 
-  async count(filters: { sport?: string; gender?: string; search?: string; size?: string; sale?: boolean }): Promise<number> {
+  async count(filters: { sport?: string; gender?: string; search?: string; size?: string; sale?: boolean; isMemberOnly?: boolean }): Promise<number> {
     const conditions = [];
     if (filters.sport) conditions.push(eq(sql`lower(${products.sport})`, filters.sport.toLowerCase()));
     if (filters.gender) conditions.push(eq(sql`lower(${products.gender})`, filters.gender.toLowerCase()));
@@ -55,6 +57,7 @@ export class CatalogRepository implements ICatalogRepository {
       );
     }
     if (filters.sale) conditions.push(isNotNull(products.salePrice));
+    if (filters.isMemberOnly) conditions.push(eq(products.isMemberOnly, true));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 

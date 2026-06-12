@@ -17,6 +17,7 @@ export class CatalogService implements ICatalogService {
       search: filters.search,
       size: filters.size,
       sale: filters.sale,
+      isMemberOnly: filters.isMemberOnly,
       limit,
       offset,
     });
@@ -27,6 +28,7 @@ export class CatalogService implements ICatalogService {
       search: filters.search,
       size: filters.size,
       sale: filters.sale,
+      isMemberOnly: filters.isMemberOnly,
     });
 
     return {

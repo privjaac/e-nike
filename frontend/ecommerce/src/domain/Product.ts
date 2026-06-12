@@ -35,6 +35,7 @@ export interface ProductFilters {
   search?: string;
   size?: string;
   sale?: boolean;
+  isMemberOnly?: boolean;
   page?: number;
   limit?: number;
 }

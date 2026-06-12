@@ -29,6 +29,7 @@ function setNotifications(list: string[]) {
 
 export function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [drops, setDrops] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickAddingId, setQuickAddingId] = useState<number | null>(null);
@@ -47,9 +48,14 @@ export function HomePage() {
       try {
         setLoading(true);
         setError(null);
-        const json = await catalogService.getProducts({ limit: 6 });
-        const items = json.items as Product[];
-        if (!cancelled) setProducts(items);
+        const [json, dropsJson] = await Promise.all([
+          catalogService.getProducts({ limit: 6 }),
+          catalogService.getProducts({ isMemberOnly: true, limit: 6 }),
+        ]);
+        if (!cancelled) {
+          setProducts(json.items);
+          setDrops(dropsJson.items);
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err.message : 'Something went wrong');
@@ -126,26 +132,7 @@ export function HomePage() {
     }
   };
 
-  const drops = [
-    {
-      name: "AJ1 'Crafted Ivory'",
-      description: 'Limited Edition Drop - Coming Soon',
-      image:
-        'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
-    },
-    {
-      name: 'Nike x NOCTA',
-      description: 'Apparel Collection',
-      image:
-        'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=800&q=80',
-    },
-    {
-      name: "Vaporfly 3 'EK'",
-      description: 'Eliud Kipchoge Edition',
-      image:
-        'https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=800&q=80',
-    },
-  ];
+
 
   return (
     <main className="pt-24 space-y-24">
@@ -323,18 +310,18 @@ export function HomePage() {
             className="flex gap-12 overflow-x-auto pb-12 scrollbar-hide"
           >
             {drops.map((drop) => {
-              const isNotified = notifiedIds.includes(drop.name);
+              const isNotified = notifiedIds.includes(drop.slug);
               return (
-                <div key={drop.name} className="flex-none w-80 md:w-[450px]">
+                <div key={drop.slug} className="flex-none w-80 md:w-[450px]">
                   <div className="aspect-square bg-inverse-surface mb-6 group relative overflow-hidden">
                     <img
-                      src={drop.image}
+                      src={drop.imageUrl}
                       alt={drop.name}
                       className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <button
-                        onClick={() => handleNotifyMe(drop.name)}
+                        onClick={() => handleNotifyMe(drop.slug)}
                         className="bg-white text-black px-8 py-3 font-bold uppercase text-sm cursor-pointer hover:bg-primary-container transition-colors"
                       >
                         {isNotified ? 'Notified' : 'Notify Me'}
