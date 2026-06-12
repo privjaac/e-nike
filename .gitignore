@@ -7,6 +7,5 @@
 *.sqlite
 *.sqlite-*
 *.md
-!ARQUITECTURA.md
 node_modules/
 dist/
