@@ -94,7 +94,7 @@ export const cartItems = sqliteTable('cart_items', {
 
 export const orders = sqliteTable('orders', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
-  userId: integer('user_id', { mode: 'number' }).notNull(),
+  userId: integer('user_id', { mode: 'number' }),
   orderNumber: text('order_number').notNull().unique(),
   status: text('status', { enum: ['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'returned'] }).notNull().default('pending'),
   totalAmount: real('total_amount').notNull(),
@@ -107,6 +107,7 @@ export const orders = sqliteTable('orders', {
   }>(),
   fulfillmentNodeId: integer('fulfillment_node_id', { mode: 'number' }),
   estimatedDelivery: text('estimated_delivery'),
+  guestTokenHash: text('guest_token_hash'),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -114,6 +115,20 @@ export const favorites = sqliteTable('favorites', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   userId: integer('user_id', { mode: 'number' }).notNull(),
   productId: integer('product_id', { mode: 'number' }).notNull(),
+  createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const orderItems = sqliteTable('order_items', {
+  id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
+  orderId: integer('order_id', { mode: 'number' }).notNull(),
+  skuId: integer('sku_id', { mode: 'number' }).notNull(),
+  productId: integer('product_id', { mode: 'number' }).notNull(),
+  productName: text('product_name').notNull(),
+  skuCode: text('sku_code').notNull(),
+  size: text('size').notNull(),
+  color: text('color').notNull(),
+  quantity: integer('quantity', { mode: 'number' }).notNull(),
+  unitPrice: real('unit_price').notNull(),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 

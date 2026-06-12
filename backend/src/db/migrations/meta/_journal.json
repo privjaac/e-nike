@@ -22,6 +22,13 @@
       "when": 1781247322619,
       "tag": "0002_cart_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1781294724662,
+      "tag": "0003_gorgeous_tigra",
+      "breakpoints": true
     }
   ]
 }
