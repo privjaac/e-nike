@@ -28,7 +28,7 @@ export function CheckoutPage() {
     city: '',
     state: '',
     zip: '',
-    country: 'US',
+    country: '',
   });
 
   if (!isAuthenticated) {
@@ -227,7 +227,7 @@ export function CheckoutPage() {
                     onChange={(e) =>
                       setShippingAddress((prev) => ({ ...prev, street: e.target.value }))
                     }
-                    placeholder="123 Main Street"
+                    placeholder="Av. Jose Pardo 123"
                     className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/20 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
@@ -242,13 +242,13 @@ export function CheckoutPage() {
                       onChange={(e) =>
                         setShippingAddress((prev) => ({ ...prev, city: e.target.value }))
                       }
-                      placeholder="New York"
+                      placeholder="Lima"
                       className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/20 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-bold uppercase tracking-tight mb-2">
-                      State
+                      State / Province
                     </label>
                     <input
                       type="text"
@@ -256,7 +256,7 @@ export function CheckoutPage() {
                       onChange={(e) =>
                         setShippingAddress((prev) => ({ ...prev, state: e.target.value }))
                       }
-                      placeholder="NY"
+                      placeholder="Lima"
                       className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/20 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
@@ -264,7 +264,7 @@ export function CheckoutPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-bold uppercase tracking-tight mb-2">
-                      ZIP Code
+                      Postal Code
                     </label>
                     <input
                       type="text"
@@ -272,7 +272,7 @@ export function CheckoutPage() {
                       onChange={(e) =>
                         setShippingAddress((prev) => ({ ...prev, zip: e.target.value }))
                       }
-                      placeholder="10001"
+                      placeholder="15001"
                       className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/20 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
@@ -286,7 +286,7 @@ export function CheckoutPage() {
                       onChange={(e) =>
                         setShippingAddress((prev) => ({ ...prev, country: e.target.value }))
                       }
-                      placeholder="US"
+                      placeholder="Peru"
                       className="w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/20 text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary transition-colors"
                     />
                   </div>
