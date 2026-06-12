@@ -25,9 +25,13 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return (json.data ?? json) as T;
 }
 
-export async function get<T>(url: string, token?: string | null): Promise<T> {
+export async function get<T>(url: string, token?: string | null, options?: { headers?: Record<string, string> }): Promise<T> {
+  const headers = getAuthHeaders(token);
+  if (options?.headers) {
+    Object.assign(headers, options.headers);
+  }
   const res = await fetch(`${API_BASE}${url}`, {
-    headers: getAuthHeaders(token),
+    headers,
   });
   return handleResponse<T>(res);
 }

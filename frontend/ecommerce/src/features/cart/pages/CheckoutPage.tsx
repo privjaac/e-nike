@@ -23,6 +23,7 @@ export function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [orderNumber, setOrderNumber] = useState<string>('');
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
     street: '',
     city: '',
@@ -30,26 +31,6 @@ export function CheckoutPage() {
     zip: '',
     country: '',
   });
-
-  if (!isAuthenticated) {
-    return (
-      <div className="pt-32 pb-20 max-w-screen-2xl mx-auto px-6 min-h-[60vh] flex flex-col items-center justify-center text-center">
-        <Package className="w-16 h-16 text-on-surface-variant mb-6" />
-        <h1 className="text-3xl font-black font-headline uppercase italic tracking-tighter mb-4">
-          Sign In to Checkout
-        </h1>
-        <p className="text-on-surface-variant mb-8 max-w-sm">
-          Please sign in to your account to complete your purchase.
-        </p>
-        <button
-          onClick={() => navigate('/auth')}
-          className="bg-on-surface text-surface px-10 py-4 font-black font-headline uppercase tracking-tighter hover:opacity-90 transition-opacity"
-        >
-          Sign In
-        </button>
-      </div>
-    );
-  }
 
   if (items.length === 0 && !orderComplete) {
     return (
@@ -80,8 +61,11 @@ export function CheckoutPage() {
         <h1 className="text-4xl font-black font-headline uppercase italic tracking-tighter mb-4">
           Order Confirmed
         </h1>
+        <p className="text-on-surface-variant text-sm mb-2">
+          Order #{orderNumber}
+        </p>
         <p className="text-on-surface-variant mb-8 max-w-md">
-          Thank you for your purchase! Your order has been placed successfully. You will receive a confirmation email shortly.
+          Thank you for your purchase! Your order has been placed successfully.
         </p>
         <button
           onClick={() => navigate('/')}
@@ -102,13 +86,17 @@ export function CheckoutPage() {
     shippingAddress.country.trim().length > 0;
 
   const handlePlaceOrder = async () => {
-    if (!user || !cartId) return;
+    if (!cartId) return;
     setIsPlacingOrder(true);
     try {
-      await orderService.create(
-        { userId: user.id, cartId: Number(cartId), shippingAddress },
-        token!
-      );
+      const payload = isAuthenticated && user
+        ? { userId: user.id, cartId: Number(cartId), shippingAddress }
+        : { cartId: Number(cartId), shippingAddress };
+      const result = await orderService.create(payload, token || undefined);
+      if (result.guestToken) {
+        localStorage.setItem(`nike-guest-order-${result.order.id}`, result.guestToken);
+      }
+      setOrderNumber(result.order.orderNumber);
       clearCart();
       setOrderComplete(true);
       addToast('Order placed successfully!', 'success');

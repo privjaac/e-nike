@@ -6,7 +6,7 @@ export type { CartItem };
 
 const SESSION_KEY = 'e-nike-session-id';
 
-function getOrCreateSessionId(): string {
+export function getOrCreateSessionId(): string {
   let sessionId = localStorage.getItem(SESSION_KEY);
   if (!sessionId) {
     sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
