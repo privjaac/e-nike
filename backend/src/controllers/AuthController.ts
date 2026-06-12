@@ -1,8 +1,9 @@
 import { Context } from 'hono';
+import type { IAuthController } from '@/controllers/IAuthController';
 import type { IAuthService } from '@/services/auth/IAuthService';
 import type { LoginDto, RegisterDto } from '@/dtos/AuthDto';
 
-export class AuthController {
+export class AuthController implements IAuthController {
   constructor(private authService: IAuthService) {}
 
   async register(c: Context) {

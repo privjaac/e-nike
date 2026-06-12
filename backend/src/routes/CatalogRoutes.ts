@@ -1,11 +1,11 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import type { CatalogController } from '@/controllers/CatalogController';
+import type { ICatalogController } from '@/controllers/ICatalogController';
 import { createProductSchema, updateProductSchema } from '@/dtos/CatalogDto';
 import { createSkuSchema, updateSkuSchema } from '@/dtos/SkuDto';
 import { authMiddleware, requireRole } from '@/middleware/AuthMiddleware';
 
-export function createCatalogRoutes(controller: CatalogController) {
+export function createCatalogRoutes(controller: ICatalogController) {
   const catalog = new Hono();
 
   catalog.get('/products', (c) => controller.getProducts(c));

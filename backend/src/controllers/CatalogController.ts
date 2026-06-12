@@ -1,11 +1,12 @@
 import { Context } from 'hono';
+import type { ICatalogController } from '@/controllers/ICatalogController';
 import type { ICatalogService } from '@/services/catalog/ICatalogService';
 import { productFiltersSchema, createProductSchema, updateProductSchema } from '@/dtos/CatalogDto';
 import type { ProductFiltersDto, CreateProductDto, UpdateProductDto } from '@/dtos/CatalogDto';
 import { createSkuSchema, updateSkuSchema } from '@/dtos/SkuDto';
 import type { CreateSkuDto, UpdateSkuDto } from '@/dtos/SkuDto';
 
-export class CatalogController {
+export class CatalogController implements ICatalogController {
   constructor(private catalogService: ICatalogService) {}
 
   async getProducts(c: Context) {

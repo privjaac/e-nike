@@ -1,4 +1,5 @@
 import { Context } from 'hono';
+import type { ICartController } from '@/controllers/ICartController';
 import type { ICartService } from '@/services/cart/ICartService';
 import type { AddCartItemDto, UpdateCartItemDto } from '@/dtos/CartDto';
 
@@ -7,7 +8,7 @@ function getUserId(c: Context): number | undefined {
   return user ? parseInt(user.sub, 10) : undefined;
 }
 
-export class CartController {
+export class CartController implements ICartController {
   constructor(private cartService: ICartService) {}
 
   async getCart(c: Context) {

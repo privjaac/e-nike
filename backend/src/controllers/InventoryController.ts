@@ -1,7 +1,8 @@
 import { Context } from 'hono';
+import type { IInventoryController } from '@/controllers/IInventoryController';
 import type { IInventoryService } from '@/services/inventory/IInventoryService';
 
-export class InventoryController {
+export class InventoryController implements IInventoryController {
   constructor(private inventoryService: IInventoryService) {}
 
   async getProductInventory(c: Context) {

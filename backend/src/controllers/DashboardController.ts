@@ -1,7 +1,8 @@
 import { Context } from 'hono';
+import type { IDashboardController } from '@/controllers/IDashboardController';
 import type { IDashboardService } from '@/services/dashboard/IDashboardService';
 
-export class DashboardController {
+export class DashboardController implements IDashboardController {
   constructor(private dashboardService: IDashboardService) {}
 
   async getMetrics(c: Context) {

@@ -1,10 +1,10 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { authMiddleware } from '@/middleware/AuthMiddleware';
-import type { FavoriteController } from '@/controllers/FavoriteController';
+import type { IFavoriteController } from '@/controllers/IFavoriteController';
 import { addFavoriteSchema } from '@/dtos/FavoriteDto';
 
-export function createFavoritesRoutes(controller: FavoriteController) {
+export function createFavoritesRoutes(controller: IFavoriteController) {
   const fav = new Hono();
   fav.use(authMiddleware);
   fav.get('/', (c) => controller.list(c));

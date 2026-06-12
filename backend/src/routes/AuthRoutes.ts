@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
-import type { AuthController } from '@/controllers/AuthController';
+import type { IAuthController } from '@/controllers/IAuthController';
 import { loginSchema, registerSchema } from '@/dtos/AuthDto';
 
-export function createAuthRoutes(controller: AuthController) {
+export function createAuthRoutes(controller: IAuthController) {
   const auth = new Hono();
   auth.post('/register', zValidator('json', registerSchema), (c) => controller.register(c));
   auth.post('/login', zValidator('json', loginSchema), (c) => controller.login(c));

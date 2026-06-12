@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
-import type { InventoryController } from '@/controllers/InventoryController';
+import type { IInventoryController } from '@/controllers/IInventoryController';
 
-export function createInventoryRoutes(controller: InventoryController) {
+export function createInventoryRoutes(controller: IInventoryController) {
   const inventory = new Hono();
   inventory.get('/product/:productId', (c) => controller.getProductInventory(c));
   inventory.get('/sku/:skuId/nodes', (c) => controller.getSkuNodes(c));

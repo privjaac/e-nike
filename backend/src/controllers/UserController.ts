@@ -1,8 +1,9 @@
 import { Context } from 'hono';
+import type { IUserController } from '@/controllers/IUserController';
 import type { IUserService } from '@/services/user/IUserService';
 import type { UpdateProfileDto } from '@/dtos/UserDto';
 
-export class UserController {
+export class UserController implements IUserController {
   constructor(private userService: IUserService) {}
 
   async updateProfile(c: Context) {

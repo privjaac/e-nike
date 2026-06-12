@@ -13,26 +13,26 @@ import { createPromotionRoutes } from '@/routes/PromotionRoutes';
 import { createDashboardRoutes } from '@/routes/DashboardRoutes';
 import { createUserRoutes } from '@/routes/UserRoutes';
 import { createFavoritesRoutes } from '@/routes/FavoritesRoutes';
-import type { AuthController } from '@/controllers/AuthController';
-import type { CartController } from '@/controllers/CartController';
-import type { CatalogController } from '@/controllers/CatalogController';
-import type { InventoryController } from '@/controllers/InventoryController';
-import type { OrderController } from '@/controllers/OrderController';
-import type { PromotionController } from '@/controllers/PromotionController';
-import type { DashboardController } from '@/controllers/DashboardController';
-import type { UserController } from '@/controllers/UserController';
-import type { FavoriteController } from '@/controllers/FavoriteController';
+import type { IAuthController } from '@/controllers/IAuthController';
+import type { ICartController } from '@/controllers/ICartController';
+import type { ICatalogController } from '@/controllers/ICatalogController';
+import type { IInventoryController } from '@/controllers/IInventoryController';
+import type { IOrderController } from '@/controllers/IOrderController';
+import type { IPromotionController } from '@/controllers/IPromotionController';
+import type { IDashboardController } from '@/controllers/IDashboardController';
+import type { IUserController } from '@/controllers/IUserController';
+import type { IFavoriteController } from '@/controllers/IFavoriteController';
 
 interface Controllers {
-  authController: AuthController;
-  cartController: CartController;
-  catalogController: CatalogController;
-  inventoryController: InventoryController;
-  orderController: OrderController;
-  promotionController: PromotionController;
-  dashboardController: DashboardController;
-  userController: UserController;
-  favoriteController: FavoriteController;
+  authController: IAuthController;
+  cartController: ICartController;
+  catalogController: ICatalogController;
+  inventoryController: IInventoryController;
+  orderController: IOrderController;
+  promotionController: IPromotionController;
+  dashboardController: IDashboardController;
+  userController: IUserController;
+  favoriteController: IFavoriteController;
 }
 
 export function createApp(controllers: Controllers) {

@@ -1,8 +1,9 @@
 import { Context } from 'hono';
+import type { IFavoriteController } from '@/controllers/IFavoriteController';
 import type { IFavoriteService } from '@/services/favorite/IFavoriteService';
 import type { AddFavoriteDto } from '@/dtos/FavoriteDto';
 
-export class FavoriteController {
+export class FavoriteController implements IFavoriteController {
   constructor(private favoriteService: IFavoriteService) {}
 
   async list(c: Context) {

@@ -1,8 +1,9 @@
 import { Context } from 'hono';
+import type { IPromotionController } from '@/controllers/IPromotionController';
 import type { IPromotionService } from '@/services/promotion/IPromotionService';
 import type { CreatePromotionDto, UpdatePromotionDto } from '@/dtos/PromotionDto';
 
-export class PromotionController {
+export class PromotionController implements IPromotionController {
   constructor(private promotionService: IPromotionService) {}
 
   async getPromotions(c: Context) {
