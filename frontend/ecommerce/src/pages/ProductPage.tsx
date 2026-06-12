@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useToastStore } from '../stores/toastStore';
+import { catalogService } from '../services/catalog.service';
+import { inventoryService } from '../services/inventory.service';
 
 interface Sku {
   id: string;
@@ -30,11 +32,6 @@ interface Product {
   imageUrl: string;
   gallery: string[];
   skus: Sku[];
-}
-
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
 }
 
 interface InventoryData {
@@ -128,14 +125,9 @@ export function ProductPage() {
       setProductLoading(true);
       setProductError(null);
       try {
-        const res = await fetch(
-          `http://localhost:3001/api/v1/catalog/products/${slug}`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: ApiResponse<Product> = await res.json();
-        if (!json.success) throw new Error('API returned unsuccessful');
+        const productData = await catalogService.getProductBySlug(slug!);
         if (!cancelled) {
-          setProduct(json.data);
+          setProduct(productData as unknown as Product);
           setSelectedSize(null);
           setShowSizeError(false);
         }
@@ -164,15 +156,14 @@ export function ProductPage() {
     async function loadInventory() {
       setInventoryLoading(true);
       try {
-        const res = await fetch(
-          `http://localhost:3001/api/v1/inventory/product/${productId}`
-        );
-        if (res.ok) {
-          const json: ApiResponse<InventoryData | InventoryData[]> =
-            await res.json();
-          if (!cancelled && json.success) {
-            const raw = json.data;
-            const realStores = Array.isArray(raw) ? raw : [raw];
+        const inv = await inventoryService.getProductInventory(Number(productId));
+        if (!cancelled) {
+          const realStores = inv.nodes.map((node) => ({
+            productId,
+            storeName: node.name,
+            stockQuantity: inv.stock.find((s) => s.nodeId === node.id)?.quantity ?? 0,
+            pickupTime: '2 hours',
+          }));
             const fallbackStores = getFallbackInventory(productId);
             const existingNames = new Set(realStores.map((s) => s.storeName));
             const nodes = [
@@ -183,17 +174,6 @@ export function ProductPage() {
             ];
             setInventoryNodes(nodes);
             setCurrentNodeIndex(0);
-          } else if (!cancelled) {
-            // API returned success: false
-            setInventoryNodes(getFallbackInventory(productId));
-            setCurrentNodeIndex(0);
-          }
-        } else {
-          // HTTP error
-          if (!cancelled) {
-            setInventoryNodes(getFallbackInventory(productId));
-            setCurrentNodeIndex(0);
-          }
         }
       } catch {
         if (!cancelled) {
@@ -210,13 +190,9 @@ export function ProductPage() {
     async function loadRelated() {
       setRelatedLoading(true);
       try {
-        const res = await fetch(
-          `http://localhost:3001/api/v1/catalog/products?limit=6`
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json: ApiResponse<RelatedProduct[]> = await res.json();
-        if (!cancelled && json.success) {
-          setRelated(json.data);
+        const json = await catalogService.getProducts({ limit: 6 });
+        if (!cancelled) {
+          setRelated(json.items as unknown as RelatedProduct[]);
         }
       } catch {
         // silently fail related products
@@ -292,12 +268,8 @@ export function ProductPage() {
         }
         if (!skuId) {
           // Fetch product details to get SKUs
-          const res = await fetch(
-            `http://localhost:3001/api/v1/catalog/products/${relatedProduct.slug}`
-          );
-          const json: ApiResponse<Product> = await res.json();
-          if (!json.success) throw new Error('Failed to load product');
-          const skus = json.data?.skus || [];
+          const detail = await catalogService.getProductBySlug(relatedProduct.slug);
+          const skus = (detail.skus || []) as Sku[];
           const available = skus.find((s) => s.stockQuantity > 0);
           if (!available) throw new Error('Product out of stock');
           skuId = available.id;

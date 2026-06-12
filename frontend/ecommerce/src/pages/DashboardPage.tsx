@@ -13,8 +13,10 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 import { useToast } from '../hooks/useToast';
-
-const API_BASE = 'http://localhost:3001/api/v1';
+import { dashboardService } from '../services/dashboard.service';
+import { catalogService } from '../services/catalog.service';
+import { promotionService } from '../services/promotion.service';
+import { API_BASE } from '../services/api';
 
 /* ------------------------------------------------------------------ */
 /*  Types                                                              */
@@ -61,15 +63,6 @@ type PromotionForm = {
   value: string;
   startDate: string;
   endDate: string;
-};
-
-type CatalogProduct = {
-  id: string;
-  slug: string;
-  name: string;
-  category: string;
-  imageUrl: string;
-  sku?: string;
 };
 
 /* ------------------------------------------------------------------ */
@@ -282,26 +275,25 @@ function useProductPerformance() {
         if (token) headers['Authorization'] = `Bearer ${token}`;
 
         // Try inventory-performance first
-        const invRes = await fetch(`${API_BASE}/dashboard/inventory-performance`, { headers });
-        if (invRes.ok) {
-          const invJson = (await invRes.json()) as { data?: { products?: ProductItem[] } };
-          const invProducts = invJson.data?.products;
+        try {
+          const invJson = await dashboardService.getInventoryPerformance(token);
+          const invProducts = (invJson as any).products;
           if (invProducts && invProducts.length > 0) {
             if (!cancelled) {
-              setProducts(invProducts);
+              setProducts(invProducts as ProductItem[]);
               setLoading(false);
             }
             return;
           }
+        } catch {
+          // fallback to catalog
         }
 
         // Fallback to catalog products
-        const catRes = await fetch(`${API_BASE}/catalog/products?limit=100`, { headers });
-        if (!catRes.ok) throw new Error(`Catalog HTTP ${catRes.status}`);
-        const catJson = (await catRes.json()) as { data?: { items?: CatalogProduct[] } };
-        const items = catJson.data?.items ?? [];
+        const catJson = await catalogService.getProducts({ limit: 100 });
+        const items = catJson.items;
 
-        const mapped: ProductItem[] = items.map((p) => ({
+        const mapped: ProductItem[] = items.map((p: any) => ({
           id: p.id,
           name: p.name,
           sku: p.sku || p.slug.toUpperCase(),
@@ -411,27 +403,17 @@ export function DashboardPage() {
 
       setIsSubmittingPromotion(true);
       try {
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_BASE}/promotions`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({
-            name: promotionForm.name,
-            code: promotionForm.code,
-            type: promotionForm.type,
-            value: Number(promotionForm.value),
-            startDate: promotionForm.startDate,
-            endDate: promotionForm.endDate,
-          }),
-        });
-
-        const json = (await res.json()) as { success?: boolean; message?: string };
-
-        if (!res.ok) {
-          throw new Error(json.message || `HTTP ${res.status}`);
-        }
+        await promotionService.create({
+          name: promotionForm.name,
+          code: promotionForm.code,
+          type: promotionForm.type as 'percentage' | 'fixed' | 'bundle',
+          value: Number(promotionForm.value),
+          startDate: new Date(promotionForm.startDate),
+          endDate: new Date(promotionForm.endDate),
+          isAutoMarkdown: false,
+          isActive: true,
+          createdBy: 1,
+        }, token!);
 
         showToast('Promotion created successfully', 'success');
         setIsPromotionModalOpen(false);
@@ -452,9 +434,7 @@ export function DashboardPage() {
 
   const handleSystemHealth = useCallback(async () => {
     try {
-      const headers: Record<string, string> = {};
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-      const res = await fetch(`${API_BASE}/health`, { headers });
+      const res = await fetch(`${API_BASE}/health`);
       if (res.ok) {
         showToast('All systems operational. API latency: 45ms', 'success');
       } else {
@@ -463,7 +443,7 @@ export function DashboardPage() {
     } catch {
       showToast('Unable to reach health endpoint. API may be offline.', 'info');
     }
-  }, [token, showToast]);
+  }, [showToast]);
 
   const handleApiDocs = useCallback(() => {
     showToast('API Documentation is available at /api/v1/* — check the backend OpenAPI spec.', 'info');

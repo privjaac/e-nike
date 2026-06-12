@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useToastStore } from '../stores/toastStore';
+import { catalogService } from '../services/catalog.service';
 
 interface Sku {
   id: string;
@@ -70,13 +71,8 @@ export function HomePage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(
-          'http://localhost:3001/api/v1/catalog/products?limit=6'
-        );
-        if (!res.ok) throw new Error('Failed to fetch products');
-        const json = await res.json();
-        if (!json.success) throw new Error(json.error || 'Failed to fetch products');
-        const items: Product[] = json.data?.items || [];
+        const json = await catalogService.getProducts({ limit: 6 });
+        const items = json.items as Product[];
         if (!cancelled) setProducts(items);
       } catch (err) {
         if (!cancelled) {
@@ -134,12 +130,8 @@ export function HomePage() {
         skuId = available?.id;
       }
       if (!skuId) {
-        const res = await fetch(
-          `http://localhost:3001/api/v1/catalog/products/${product.slug}`
-        );
-        const json = await res.json();
-        if (!json.success) throw new Error('Failed to load product');
-        const skus = json.data?.skus || [];
+        const detail = await catalogService.getProductBySlug(product.slug);
+        const skus = (detail.skus || []) as Sku[];
         const available = skus.find((s: Sku) => s.stockQuantity > 0);
         if (!available) throw new Error('Product out of stock');
         skuId = available.id;

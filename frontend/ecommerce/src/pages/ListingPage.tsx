@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronDown, ShoppingCart, Bolt, Check } from 'lucide-react';
 import { useCartStore } from '../stores/cartStore';
 import { useToastStore } from '../stores/toastStore';
+import { catalogService } from '../services/catalog.service';
 
 /* ─── Types ─── */
 interface Sku {
@@ -26,21 +27,6 @@ interface Product {
   createdAt?: string;
 }
 
-interface Pagination {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-interface ApiResponse {
-  success: boolean;
-  data: {
-    items: Product[];
-    pagination: Pagination;
-  };
-}
-
 /* ─── Constants ─── */
 const SPORTS = ['Running', 'Basketball', 'Training & Gym', 'Lifestyle'] as const;
 
@@ -53,7 +39,7 @@ const SIZES = [
   { label: 'US 12', disabled: true },
 ] as const;
 
-const API_BASE = 'http://localhost:3001/api/v1';
+
 
 type SortOption = 'featured' | 'price-low' | 'price-high' | 'newest';
 
@@ -115,18 +101,15 @@ export function ListingPage() {
     if (selectedSize) params.set('size', selectedSize);
     if (searchQuery) params.set('search', searchQuery);
 
-    fetch(`${API_BASE}/catalog/products?${params.toString()}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
+    catalogService
+      .getProducts({
+        sport: selectedSports.join(','),
+        search: searchQuery,
+        limit: 24,
       })
-      .then((json: ApiResponse) => {
+      .then((json) => {
         if (cancelled) return;
-        if (json.success) {
-          setProducts(json.data.items);
-        } else {
-          setError('Failed to load products');
-        }
+        setProducts(json.items as unknown as Product[]);
       })
       .catch((err) => {
         if (!cancelled)
@@ -197,10 +180,8 @@ export function ListingPage() {
       }
       if (!skuId) {
         // Fetch full product to get SKUs
-        const res = await fetch(`${API_BASE}/catalog/products/${product.slug}`);
-        const json: ApiResponse = await res.json();
-        if (!json.success) throw new Error('Failed to load product details');
-        const skus = json.data?.items?.[0]?.skus || [];
+        const detail = await catalogService.getProductBySlug(product.slug);
+        const skus = (detail.skus || []) as Sku[];
         const available = skus.find((s: Sku) => s.stockQuantity > 0);
         if (!available) throw new Error('Product out of stock');
         skuId = available.id;

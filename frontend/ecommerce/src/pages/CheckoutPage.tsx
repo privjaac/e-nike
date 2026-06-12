@@ -4,6 +4,7 @@ import { Check, ChevronRight, ChevronLeft, Loader2, MapPin, Package, CreditCard 
 import { useCartStore } from '../stores/cartStore';
 import { useAuthStore } from '../stores/authStore';
 import { useToastStore } from '../stores/toastStore';
+import { orderService } from '../services/order.service';
 
 interface ShippingAddress {
   street: string;
@@ -13,7 +14,7 @@ interface ShippingAddress {
   country: string;
 }
 
-const API_URL = 'http://localhost:3001/api/v1';
+
 
 export function CheckoutPage() {
   const navigate = useNavigate();
@@ -106,25 +107,10 @@ export function CheckoutPage() {
     if (!user || !cartId) return;
     setIsPlacingOrder(true);
     try {
-      const res = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          cartId,
-          shippingAddress,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to place order');
-      }
-
+      await orderService.create(
+        { userId: user.id, cartId: Number(cartId), shippingAddress },
+        token!
+      );
       clearCart();
       setOrderComplete(true);
       addToast('Order placed successfully!', 'success');
