@@ -16,6 +16,7 @@ export interface ICartRepository {
   create(data: { userId?: number; sessionId?: string }): Promise<CartRow>;
   assignUser(sessionId: string, userId: number): Promise<void>;
   getItems(cartId: number): Promise<CartItem[]>;
+  findItemByCartAndSku(cartId: number, skuId: number): Promise<CartItem | undefined>;
   addItem(data: { cartId: number; skuId: number; quantity: number; unitPrice: number }): Promise<CartItem>;
   updateItem(itemId: number, quantity: number): Promise<void>;
   removeItem(itemId: number): Promise<void>;

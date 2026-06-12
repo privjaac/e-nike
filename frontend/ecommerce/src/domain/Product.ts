@@ -1,9 +1,12 @@
 export interface Sku {
-  id: string;
+  id: number;
+  productId: number;
   sku: string;
   size: string;
   color: string;
+  colorHex: string | null;
   stockQuantity: number;
+  weightGrams: number | null;
 }
 
 export interface Product {
@@ -30,6 +33,8 @@ export interface ProductFilters {
   sport?: string;
   gender?: string;
   search?: string;
+  size?: string;
+  sale?: boolean;
   page?: number;
   limit?: number;
 }

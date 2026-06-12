@@ -94,10 +94,10 @@ export function AnalyticsPage() {
       try {
         const json = await dashboardService.getMetrics(token);
         const data: MetricItem[] = [
-          { id: '1', label: 'Total Orders', value: String(json.metrics.totalOrders), delta: 'STABLE', deltaType: 'stable' },
-          { id: '2', label: 'Total Products', value: String(json.metrics.totalProducts), delta: 'STABLE', deltaType: 'stable' },
-          { id: '3', label: 'Total Users', value: String(json.metrics.totalUsers), delta: 'STABLE', deltaType: 'stable' },
-          { id: '4', label: 'Avg Order Value', value: `$${json.metrics.avgOrderValue}`, delta: 'STABLE', deltaType: 'stable' },
+          { id: '1', label: 'Total Orders', value: String(json.totalOrders), delta: 'STABLE', deltaType: 'stable' },
+          { id: '2', label: 'Total Products', value: String(json.totalProducts), delta: 'STABLE', deltaType: 'stable' },
+          { id: '3', label: 'Total Users', value: String(json.totalUsers), delta: 'STABLE', deltaType: 'stable' },
+          { id: '4', label: 'Avg Order Value', value: `$${json.avgOrderValue.toFixed(2)}`, delta: 'STABLE', deltaType: 'stable' },
         ];
         if (!cancelled) setMetrics(data);
       } catch (err) {

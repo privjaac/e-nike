@@ -3,7 +3,7 @@ import {
   Calendar,
   ArrowUp,
   ArrowDown,
-  ChevronDown,
+
   ArrowRight,
   X,
   RefreshCw,
@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/toastStore';
-import { dashboardService } from '@/services/DashboardService';
 import { catalogService } from '@/services/CatalogService';
+import { inventoryService } from '@/services/InventoryService';
 import { promotionService } from '@/services/PromotionService';
 import { API_BASE } from '@/services/api';
 
@@ -27,14 +27,14 @@ type MetricItem = {
 };
 
 type ProductItem = {
-  id: string;
+  id: number;
   name: string;
   sku: string;
   category: string;
-  unitsSold: number;
-  inventory: number;
-  wos: number;
-  status: 'Optimal' | 'Critical Low' | 'Overstocked';
+  unitsSold: number | null;
+  inventory: number | null;
+  wos: number | null;
+  status: 'Optimal' | 'Critical Low' | 'Overstocked' | 'Out of Stock';
   image: string;
 };
 
@@ -113,35 +113,35 @@ const defaultMetrics: MetricItem[] = [
 
 const defaultProducts: ProductItem[] = [
   {
-    id: '1',
+    id: 1,
     name: "Air Max Solo '24",
     sku: 'DX3666-100',
     category: 'Footwear',
-    unitsSold: 4821,
-    inventory: 12400,
-    wos: 2.4,
+    unitsSold: null,
+    inventory: null,
+    wos: null,
     status: 'Optimal',
     image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=100&q=80',
   },
   {
-    id: '2',
+    id: 2,
     name: "Dunk Low 'Retro'",
     sku: 'DD1391-100',
     category: 'Footwear',
-    unitsSold: 8902,
-    inventory: 2100,
-    wos: 0.2,
+    unitsSold: null,
+    inventory: null,
+    wos: null,
     status: 'Critical Low',
     image: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=100&q=80',
   },
   {
-    id: '3',
+    id: 3,
     name: 'Jordan 1 Mid',
     sku: '554724-092',
     category: 'Footwear',
-    unitsSold: 1230,
-    inventory: 14200,
-    wos: 11.5,
+    unitsSold: null,
+    inventory: null,
+    wos: null,
     status: 'Overstocked',
     image: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=100&q=80',
   },
@@ -225,6 +225,12 @@ function PromotionSkeleton() {
   );
 }
 
+function getStockStatus(total: number): ProductItem['status'] {
+  if (total === 0) return 'Out of Stock';
+  if (total < 50) return 'Critical Low';
+  return 'Optimal';
+}
+
 function useProductPerformance() {
   const token = useAuthStore((s) => s.token);
   const [products, setProducts] = useState<ProductItem[] | null>(null);
@@ -238,36 +244,35 @@ function useProductPerformance() {
 
     async function load() {
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        try {
-          const invJson = await dashboardService.getInventoryPerformance(token);
-          const invProducts = (invJson as any).products;
-          if (invProducts && invProducts.length > 0) {
-            if (!cancelled) {
-              setProducts(invProducts as ProductItem[]);
-              setLoading(false);
-            }
-            return;
-          }
-        } catch {
-        }
-
-        const catJson = await catalogService.getProducts({ limit: 100 });
+        const [catJson, cats] = await Promise.all([
+          catalogService.getProducts({ limit: 100 }),
+          catalogService.getCategories(),
+        ]);
         const items = catJson.items;
 
-        const mapped: ProductItem[] = items.map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          sku: p.sku || p.slug.toUpperCase(),
-          category: p.category,
-          unitsSold: 0,
-          inventory: 0,
-          wos: 0,
-          status: 'Optimal',
-          image: p.imageUrl,
-        }));
+        const mapped: ProductItem[] = await Promise.all(
+          items.map(async (p) => {
+            let inventory: number | null = null;
+            try {
+              const inv = await inventoryService.getProductInventory(p.id, token);
+              inventory = inv.stock.reduce((sum, s) => sum + s.quantity, 0);
+            } catch {
+              // inventory stays null if endpoint fails
+            }
+
+            return {
+              id: p.id,
+              name: p.name,
+              sku: p.skus?.[0]?.sku || p.slug.toUpperCase(),
+              category: cats.find((c) => c.id === p.categoryId)?.name ?? '',
+              unitsSold: null,
+              inventory,
+              wos: null,
+              status: inventory !== null ? getStockStatus(inventory) : 'Optimal',
+              image: p.imageUrl,
+            };
+          })
+        );
 
         if (!cancelled) {
           setProducts(mapped);
@@ -319,11 +324,39 @@ export function DashboardPage() {
   const [isSubmittingPromotion, setIsSubmittingPromotion] = useState(false);
   const [automaticMarkdowns, setAutomaticMarkdowns] = useState(promotionData.automaticMarkdowns);
 
+  // Promotions list for the gate
+  const [promotionsList, setPromotionsList] = useState<import('@/services/PromotionService').Promotion[]>([]);
+  const [selectedPromotionId, setSelectedPromotionId] = useState<number | null>(null);
+  const [promotionsLoading, setPromotionsLoading] = useState(false);
+
   useEffect(() => {
     if (promotionDataRaw) {
       setAutomaticMarkdowns(promotionDataRaw.automaticMarkdowns);
     }
   }, [promotionDataRaw]);
+
+  const fetchPromotions = useCallback(async () => {
+    if (!token) return;
+    setPromotionsLoading(true);
+    try {
+      const list = await promotionService.getAll(false, token);
+      setPromotionsList(list);
+      // Pick the first active one as selected if none selected
+      const active = list.find((p) => p.isActive);
+      if (active && selectedPromotionId === null) {
+        setSelectedPromotionId(active.id);
+        setAutomaticMarkdowns(active.isAutoMarkdown);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setPromotionsLoading(false);
+    }
+  }, [token, selectedPromotionId]);
+
+  useEffect(() => {
+    fetchPromotions();
+  }, [fetchPromotions]);
 
   const handleExportReport = useCallback(() => {
     const report = {
@@ -345,13 +378,28 @@ export function DashboardPage() {
     addToast('Report downloaded successfully', 'success');
   }, [metrics, products, promotionData, addToast]);
 
-  const handleToggleMarkdowns = useCallback(() => {
-    setAutomaticMarkdowns((prev) => {
-      const next = !prev;
-      addToast(`Automatic markdowns ${next ? 'enabled' : 'disabled'}`, 'info');
-      return next;
-    });
-  }, [addToast]);
+  const handleToggleMarkdowns = useCallback(async () => {
+    if (!token || !selectedPromotionId) {
+      addToast('Select a promotion first', 'info');
+      return;
+    }
+    const next = !automaticMarkdowns;
+    try {
+      await promotionService.update(selectedPromotionId, { isAutoMarkdown: next }, token);
+      setAutomaticMarkdowns(next);
+      addToast(`Automatic markdowns ${next ? 'enabled' : 'disabled'}`, 'success');
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Failed to update', 'error');
+    }
+  }, [automaticMarkdowns, selectedPromotionId, token, addToast]);
+
+  const handleSelectPromotion = useCallback(async (id: number) => {
+    setSelectedPromotionId(id);
+    const promo = promotionsList.find((p) => p.id === id);
+    if (promo) {
+      setAutomaticMarkdowns(promo.isAutoMarkdown);
+    }
+  }, [promotionsList]);
 
   const handlePromotionSubmit = useCallback(
     async (e: React.FormEvent) => {
@@ -530,27 +578,29 @@ export function DashboardPage() {
                         </div>
                       </td>
                       <td className="py-4 text-xs font-bold uppercase text-zinc-500">{product.category}</td>
-                      <td className="py-4 text-right font-headline font-bold text-sm">
-                        {product.unitsSold.toLocaleString()}
+                      <td className="py-4 text-right font-headline font-bold text-sm text-zinc-400">
+                        {product.unitsSold !== null ? product.unitsSold.toLocaleString() : '—'}
                       </td>
                       <td className="py-4 text-right font-headline font-bold text-sm">
-                        {product.inventory.toLocaleString()}
+                        {product.inventory !== null ? product.inventory.toLocaleString() : '—'}
                       </td>
                       <td
                         className={`py-4 text-right font-headline font-bold text-sm ${
-                          product.wos < 1 ? 'text-error' : ''
+                          product.wos !== null && product.wos < 1 ? 'text-error' : 'text-zinc-400'
                         }`}
                       >
-                        {product.wos}
+                        {product.wos !== null ? product.wos.toFixed(1) : '—'}
                       </td>
                       <td className="py-4 pr-4 text-right">
                         <span
                           className={`px-2 py-1 text-[10px] font-bold uppercase ${
                             product.status === 'Optimal'
                               ? 'bg-green-100 text-green-700'
-                              : product.status === 'Critical Low'
+                              : product.status === 'Out of Stock'
                               ? 'bg-error-container text-error'
-                              : 'bg-amber-100 text-amber-700'
+                              : product.status === 'Critical Low'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-blue-100 text-blue-700'
                           }`}
                         >
                           {product.status}
@@ -578,10 +628,21 @@ export function DashboardPage() {
                     <label className="text-[10px] font-bold uppercase text-zinc-400 block mb-2">
                       Active Promotion Gate
                     </label>
-                    <div className="relative w-full h-12 bg-zinc-100 flex items-center px-4 justify-between group cursor-pointer hover:bg-zinc-200 transition-colors">
-                      <span className="text-xs font-bold">{promotionData.activePromotion}</span>
-                      <ChevronDown className="w-4 h-4 text-zinc-400" />
-                    </div>
+                    <select
+                      value={selectedPromotionId ?? ''}
+                      onChange={(e) => handleSelectPromotion(Number(e.target.value))}
+                      disabled={promotionsLoading}
+                      className="w-full h-12 bg-zinc-100 px-4 text-xs font-bold text-zinc-900 outline-none focus:ring-2 focus:ring-primary cursor-pointer border-none appearance-none"
+                    >
+                      {promotionsList.length === 0 && (
+                        <option value="">{promotionData.activePromotion}</option>
+                      )}
+                      {promotionsList.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.code}) {p.isActive ? '— Active' : '— Inactive'}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div className="flex items-center justify-between p-4 bg-zinc-50">

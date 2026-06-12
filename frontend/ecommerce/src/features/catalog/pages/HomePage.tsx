@@ -11,31 +11,7 @@ import {
 import { useCartStore } from '@/stores/cartStore';
 import { useToastStore } from '@/stores/toastStore';
 import { catalogService } from '@/services/CatalogService';
-
-interface Sku {
-  id: string;
-  size: string;
-  stockQuantity: number;
-}
-
-interface Product {
-  id: number;
-  name: string;
-  slug: string;
-  description: string | null;
-  categoryId: number;
-  sport: string;
-  gender: string;
-  basePrice: number;
-  salePrice: number | null;
-  imageUrl: string;
-  gallery: string[] | null;
-  isMemberOnly: boolean;
-  isFullPrice: boolean;
-  status: string;
-  createdAt: string;
-  skus?: Sku[];
-}
+import type { Product } from '@/domain/Product';
 
 const NOTIFY_KEY = 'nike-notifications';
 
@@ -124,15 +100,15 @@ export function HomePage() {
   const handleQuickAdd = async (product: Product) => {
     setQuickAddingId(product.id);
     try {
-      let skuId: string | undefined;
+      let skuId: string | number | undefined;
       if (product.skus && product.skus.length > 0) {
         const available = product.skus.find((s) => s.stockQuantity > 0);
         skuId = available?.id;
       }
       if (!skuId) {
         const detail = await catalogService.getProductBySlug(product.slug);
-        const skus = (detail.skus || []) as Sku[];
-        const available = skus.find((s: Sku) => s.stockQuantity > 0);
+        const skus = detail.skus || [];
+        const available = skus.find((s) => s.stockQuantity > 0);
         if (!available) throw new Error('Product out of stock');
         skuId = available.id;
       }

@@ -47,6 +47,12 @@ export class CartService implements ICartService {
       throw new Error('Either userId or sessionId is required');
     }
 
+    const existingItem = await this.cartRepository.findItemByCartAndSku(cart.id, data.skuId);
+    if (existingItem) {
+      await this.cartRepository.updateItem(existingItem.id, existingItem.quantity + data.quantity);
+      return { ...existingItem, quantity: existingItem.quantity + data.quantity };
+    }
+
     return this.cartRepository.addItem({
       cartId: cart.id,
       skuId: data.skuId,

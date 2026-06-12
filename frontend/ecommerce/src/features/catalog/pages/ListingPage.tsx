@@ -4,27 +4,7 @@ import { ChevronDown, ShoppingCart, Bolt, Check } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useToastStore } from '@/stores/toastStore';
 import { catalogService } from '@/services/CatalogService';
-
-interface Sku {
-  id: string;
-  size: string;
-  stockQuantity: number;
-}
-
-interface Product {
-  id: string;
-  slug: string;
-  name: string;
-  category: string;
-  sport?: string;
-  gender?: string;
-  price: number;
-  imageUrl: string;
-  badge?: 'member-only' | 'full-price' | null;
-  skus?: Sku[];
-  totalStock?: number;
-  createdAt?: string;
-}
+import type { Product } from '@/domain/Product';
 
 const SPORTS = ['Running', 'Basketball', 'Training & Gym', 'Lifestyle'] as const;
 
@@ -79,7 +59,7 @@ export function ListingPage() {
 
   const { addItem, fetchCart } = useCartStore();
   const addToast = useToastStore((s) => s.addToast);
-  const [quickAddingId, setQuickAddingId] = useState<string | null>(null);
+  const [quickAddingId, setQuickAddingId] = useState<number | null>(null);
 
   const genderFilter = searchParams.get('gender') || undefined;
   const saleFilter = searchParams.get('sale') || undefined;
@@ -94,12 +74,13 @@ export function ListingPage() {
         sport: selectedSports.length ? selectedSports.join(',') : undefined,
         gender: genderFilter,
         search: searchQuery || undefined,
+        size: selectedSize ? selectedSize.replace('US ', '') : undefined,
         sale: saleFilter === 'true',
         limit: 24,
       })
       .then((json) => {
         if (cancelled) return;
-        setProducts(json.items as unknown as Product[]);
+        setProducts(json.items);
       })
       .catch((err) => {
         if (!cancelled)
@@ -118,9 +99,9 @@ export function ListingPage() {
     const list = [...products];
     switch (sortBy) {
       case 'price-low':
-        return list.sort((a, b) => a.price - b.price);
+        return list.sort((a, b) => a.basePrice - b.basePrice);
       case 'price-high':
-        return list.sort((a, b) => b.price - a.price);
+        return list.sort((a, b) => b.basePrice - a.basePrice);
       case 'newest':
         return list.sort((a, b) => {
           if (a.createdAt && b.createdAt) {
@@ -128,7 +109,7 @@ export function ListingPage() {
               new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
             );
           }
-          return b.id.localeCompare(a.id);
+          return b.id - a.id;
         });
       case 'featured':
       default:
@@ -161,19 +142,20 @@ export function ListingPage() {
     e?.stopPropagation();
     setQuickAddingId(product.id);
     try {
-      let skuId: string | undefined;
+      let skuId: string | number | undefined;
       if (product.skus && product.skus.length > 0) {
         const available = product.skus.find((s) => s.stockQuantity > 0);
         skuId = available?.id;
       }
-      if (!skuId) {
+      if (skuId === undefined) {
         const detail = await catalogService.getProductBySlug(product.slug);
-        const skus = (detail.skus || []) as Sku[];
-        const available = skus.find((s: Sku) => s.stockQuantity > 0);
+        const skus = detail.skus || [];
+        const available = skus.find((s) => s.stockQuantity > 0);
         if (!available) throw new Error('Product out of stock');
         skuId = available.id;
       }
-      await addItem(skuId, 1, product.price);
+      if (skuId === undefined) throw new Error('No SKU available');
+      await addItem(skuId, 1, product.basePrice);
       addToast('Added to bag!', 'success');
       await fetchCart();
     } catch (err) {
@@ -417,14 +399,14 @@ export function ListingPage() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           loading="lazy"
                         />
-                        {product.badge === 'member-only' && (
+                        {product.isMemberOnly && (
                           <div className="absolute top-4 left-4 flex flex-col gap-2">
                             <span className="bg-primary-container text-on-primary-container text-[10px] font-black px-2 py-1 uppercase tracking-tighter">
                               Member Only
                             </span>
                           </div>
                         )}
-                        {product.badge === 'full-price' && (
+                        {product.isFullPrice && !product.isMemberOnly && (
                           <div className="absolute top-4 left-4">
                             <span className="bg-zinc-900 text-white text-[10px] font-black px-2 py-1 uppercase tracking-tighter">
                               Full-Price
@@ -449,10 +431,16 @@ export function ListingPage() {
                           {product.name}
                         </h4>
                         <p className="text-on-surface-variant text-sm">
-                          {product.category}
+                          {product.gender
+                            ? product.gender.charAt(0).toUpperCase() +
+                              product.gender.slice(1) +
+                              (product.sport ? "'s " + product.sport.charAt(0).toUpperCase() + product.sport.slice(1) : '')
+                            : product.sport
+                              ? product.sport.charAt(0).toUpperCase() + product.sport.slice(1)
+                              : ''}
                         </p>
                         <p className="font-bold mt-2">
-                          ${product.price.toFixed(2)}
+                          ${product.basePrice.toFixed(2)}
                         </p>
                       </div>
                     </Link>

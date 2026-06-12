@@ -3,6 +3,7 @@ import type { OrderWithItems } from '@/domain/Order';
 import type { ICartRepository } from '@/repositories/cart/ICartRepository';
 import type { IOrderRepository } from '@/repositories/order/IOrderRepository';
 import type { IOrderService } from '@/services/order/IOrderService';
+import type { CreateOrderDto } from '@/dtos/OrderDto';
 
 export class OrderService implements IOrderService {
   constructor(
@@ -14,7 +15,7 @@ export class OrderService implements IOrderService {
     return this.orderRepository.findAll(userId);
   }
 
-  async createOrder(data: { userId: number; cartId: number; shippingAddress: unknown }): Promise<OrderWithItems> {
+  async createOrder(data: CreateOrderDto): Promise<OrderWithItems> {
     const items = await this.orderRepository.getCartItems(data.cartId);
     const totalAmount = items.reduce((sum, i) => sum + i.quantity * i.unitPrice, 0);
     const orderNumber = `NIKE-${Date.now()}-${Math.floor(Math.random() * 1000)}`;

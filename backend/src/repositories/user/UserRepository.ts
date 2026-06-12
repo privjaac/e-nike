@@ -4,6 +4,7 @@ import { db } from '@/db/Database';
 import { users } from '@/db/Schema';
 import { eq, sql } from 'drizzle-orm';
 import type { IUserRepository } from '@/repositories/user/IUserRepository';
+import type { UserInsert, UserUpdate } from '@/db/Schema';
 
 function toSafeUser(user: User): SafeUser {
   const { passwordHash, ...safe } = user;
@@ -19,11 +20,11 @@ export class UserRepository implements IUserRepository {
     return db.select().from(users).where(eq(users.id, id)).get() as User | undefined;
   }
 
-  async create(data: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
-    return db.insert(users).values(data as any).returning().get() as User;
+  async create(data: UserInsert): Promise<User> {
+    return db.insert(users).values(data).returning().get() as User;
   }
 
-  async update(id: number, data: Partial<Pick<User, 'firstName' | 'lastName' | 'email'>>): Promise<SafeUser> {
+  async update(id: number, data: UserUpdate): Promise<SafeUser> {
     const updated = await db
       .update(users)
       .set(data)

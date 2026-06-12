@@ -131,3 +131,14 @@ export const promotions = sqliteTable('promotions', {
   createdBy: integer('created_by', { mode: 'number' }).notNull(),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
+
+export type ProductInsert = typeof products.$inferInsert;
+export type ProductUpdate = Partial<typeof products.$inferInsert>;
+export type SkuInsert = typeof skus.$inferInsert;
+export type SkuUpdate = Partial<typeof skus.$inferInsert>;
+export type PromotionInsert = typeof promotions.$inferInsert;
+export type PromotionUpdate = Partial<typeof promotions.$inferInsert>;
+export type OrderInsert = typeof orders.$inferInsert;
+export type OrderUpdate = Partial<typeof orders.$inferInsert>;
+export type UserInsert = typeof users.$inferInsert;
+export type UserUpdate = Partial<typeof users.$inferInsert>;

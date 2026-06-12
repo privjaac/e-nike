@@ -2,7 +2,7 @@ import { get, post, patch, del } from '@/services/api';
 
 export interface CartItem {
   id: string;
-  skuId: string;
+  skuId: number;
   quantity: number;
   unitPrice: number;
   name?: string;
@@ -24,16 +24,19 @@ export interface Cart {
   subtotal: number;
 }
 
+function buildCartUrl(path: string, sessionId?: string) {
+  const qs = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
+  return `${path}${qs}`;
+}
+
 export const cartService = {
-  getCart(cartId?: string, sessionId?: string, token?: string | null) {
-    const url = cartId && token ? `/cart/${cartId}` : `/cart?sessionId=${encodeURIComponent(sessionId || '')}`;
-    return get<Cart>(url, token);
+  getCart(sessionId?: string, token?: string | null) {
+    return get<Cart>(buildCartUrl('/cart', sessionId), token);
   },
 
-  addItem(skuId: string, quantity: number, unitPrice: number, sessionId: string, cartId?: string | null, token?: string | null) {
-    const body: Record<string, unknown> = { skuId, quantity, unitPrice, sessionId };
-    if (cartId && token) body.cartId = cartId;
-    return post<CartItem>('/cart/items', body, token);
+  addItem(skuId: string | number, quantity: number, unitPrice: number, sessionId: string, token?: string | null) {
+    const body = { skuId: Number(skuId), quantity, unitPrice };
+    return post<CartItem>(buildCartUrl('/cart/items', sessionId), body, token);
   },
 
   updateItem(itemId: string, quantity: number, token?: string | null) {

@@ -23,7 +23,7 @@ interface CartState {
   isLoading: boolean;
   error: string | null;
 
-  addItem: (skuId: string, quantity: number, unitPrice: number) => Promise<void>;
+  addItem: (skuId: string | number, quantity: number, unitPrice: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   fetchCart: (sessionId?: string) => Promise<void>;
@@ -44,13 +44,12 @@ export const useCartStore = create<CartState>()((set, get) => ({
   isLoading: false,
   error: null,
 
-  addItem: async (skuId: string, quantity: number, unitPrice: number) => {
+  addItem: async (skuId: string | number, quantity: number, unitPrice: number) => {
     const token = useAuthStore.getState().token;
-    const cartId = get().cartId;
     const sessionId = getOrCreateSessionId();
     set({ isLoading: true, error: null });
     try {
-      await cartService.addItem(skuId, quantity, unitPrice, sessionId, cartId, token);
+      await cartService.addItem(skuId, quantity, unitPrice, sessionId, token);
       await get().fetchCart();
     } catch (err) {
       set({
@@ -94,14 +93,13 @@ export const useCartStore = create<CartState>()((set, get) => ({
   fetchCart: async (overrideSessionId?: string) => {
     const token = useAuthStore.getState().token;
     const sessionId = overrideSessionId || getOrCreateSessionId();
-    const cartId = get().cartId;
     set({ isLoading: true, error: null });
     try {
-      const cart = await cartService.getCart(cartId || undefined, sessionId, token);
-      const items = cart.items || [];
+      const cart = await cartService.getCart(sessionId, token);
+      const items = cart?.items || [];
       set({
         items,
-        cartId: cart.id ? String(cart.id) : get().cartId,
+        cartId: cart?.id ? String(cart.id) : get().cartId,
         ...computeTotals(items),
         isLoading: false,
       });

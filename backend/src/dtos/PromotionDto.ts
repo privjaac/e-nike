@@ -14,3 +14,6 @@ export const createPromotionSchema = z.object({
 });
 
 export type CreatePromotionDto = z.infer<typeof createPromotionSchema>;
+
+export const updatePromotionSchema = createPromotionSchema.partial();
+export type UpdatePromotionDto = z.infer<typeof updatePromotionSchema>;

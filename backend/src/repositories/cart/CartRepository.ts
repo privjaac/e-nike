@@ -57,6 +57,11 @@ export class CartRepository implements ICartRepository {
     })) as CartItem[];
   }
 
+  async findItemByCartAndSku(cartId: number, skuId: number): Promise<CartItem | undefined> {
+    const row = db.select().from(cartItems).where(and(eq(cartItems.cartId, cartId), eq(cartItems.skuId, skuId))).get();
+    return row as CartItem | undefined;
+  }
+
   async addItem(data: { cartId: number; skuId: number; quantity: number; unitPrice: number }): Promise<CartItem> {
     const row = db.insert(cartItems).values(data).returning().get();
     return row as CartItem;

@@ -5,6 +5,7 @@ import { db } from '@/db/Database';
 import { orders, cartItems, skus, products } from '@/db/Schema';
 import { eq } from 'drizzle-orm';
 import type { IOrderRepository } from '@/repositories/order/IOrderRepository';
+import type { OrderInsert } from '@/db/Schema';
 
 export class OrderRepository implements IOrderRepository {
   async findAll(userId?: number): Promise<Order[]> {
@@ -14,14 +15,8 @@ export class OrderRepository implements IOrderRepository {
     return db.select().from(orders).all() as Order[];
   }
 
-  async create(data: {
-    userId: number;
-    orderNumber: string;
-    totalAmount: number;
-    shippingAddress?: any;
-    status: string;
-  }): Promise<Order> {
-    return db.insert(orders).values(data as any).returning().get() as Order;
+  async create(data: OrderInsert): Promise<Order> {
+    return db.insert(orders).values(data).returning().get() as Order;
   }
 
   async getCartItems(cartId: number): Promise<CartItem[]> {

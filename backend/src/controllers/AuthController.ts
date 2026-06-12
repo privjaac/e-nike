@@ -24,6 +24,6 @@ export class AuthController {
     }
     const token = authHeader.slice(7);
     const user = await this.authService.me(token);
-    return c.json({ success: true, data: user });
+    return c.json({ success: true, data: { user } });
   }
 }

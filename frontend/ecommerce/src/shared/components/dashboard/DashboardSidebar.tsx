@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { Zap, LayoutDashboard, Package, BarChart3, Truck, Settings } from 'lucide-react';
+import { Zap, LayoutDashboard, Package, BarChart3, Truck, Settings, Boxes } from 'lucide-react';
 
 const navItems = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+  { to: '/dashboard/products', label: 'Products', icon: Boxes },
   { to: '/dashboard/inventory', label: 'Inventory', icon: Package },
   { to: '/dashboard/analytics', label: 'Analytics', icon: BarChart3 },
   { to: '/dashboard/orders', label: 'Orders', icon: Truck },

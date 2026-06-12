@@ -10,6 +10,8 @@ import { FavoritesPage } from '@/features/favorites/pages/FavoritesPage';
 import { CheckoutPage } from '@/features/cart/pages/CheckoutPage';
 import { DashboardLayout } from '@/shared/components/dashboard/DashboardLayout';
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage';
+import { ProductsPage } from '@/features/dashboard/pages/ProductsPage';
+import { ProductEditPage } from '@/features/dashboard/pages/ProductEditPage';
 import { InventoryPage } from '@/features/dashboard/pages/InventoryPage';
 import { OrdersPage } from '@/features/dashboard/pages/OrdersPage';
 import { AnalyticsPage } from '@/features/dashboard/pages/AnalyticsPage';
@@ -23,6 +25,9 @@ function App() {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="products/new" element={<ProductEditPage />} />
+          <Route path="products/:id/edit" element={<ProductEditPage />} />
           <Route path="inventory" element={<InventoryPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
           <Route path="orders" element={<OrdersPage />} />

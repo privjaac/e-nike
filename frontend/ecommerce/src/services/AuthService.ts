@@ -34,6 +34,6 @@ export const authService = {
   },
 
   me(token: string) {
-    return get<User>('/auth/me', token);
+    return get<AuthPayload>('/auth/me', token);
   },
 };

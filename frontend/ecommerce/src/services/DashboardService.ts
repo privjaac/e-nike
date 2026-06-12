@@ -1,32 +1,11 @@
 import { get } from '@/services/api';
+import type { DashboardMetrics, InventoryPerformance, Promotion } from '@/domain/Dashboard';
 
-export interface DashboardMetrics {
-  totalOrders: number;
-  totalProducts: number;
-  totalUsers: number;
-  avgOrderValue: number;
-}
-
-export interface InventoryPerformance {
-  lowStockItems: number;
-  totalUnits: number;
-}
-
-export interface Promotion {
-  id: number;
-  name: string;
-  code: string;
-  type: string;
-  value: number;
-  isActive: boolean;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-}
+export type { DashboardMetrics, InventoryPerformance, Promotion };
 
 export const dashboardService = {
   getMetrics(token?: string | null) {
-    return get<{ metrics: DashboardMetrics }>('/dashboard/metrics', token);
+    return get<DashboardMetrics>('/dashboard/metrics', token);
   },
 
   getInventoryPerformance(token?: string | null) {

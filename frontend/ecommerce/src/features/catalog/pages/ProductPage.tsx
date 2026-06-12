@@ -14,35 +14,17 @@ import { useCartStore } from '@/stores/cartStore';
 import { useToastStore } from '@/stores/toastStore';
 import { catalogService } from '@/services/CatalogService';
 import { inventoryService } from '@/services/InventoryService';
-
-interface Sku {
-  id: string;
-  sku: string;
-  size: string;
-  color: string;
-  stockQuantity: number;
-}
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  description: string;
-  basePrice: number;
-  imageUrl: string;
-  gallery: string[];
-  skus: Sku[];
-}
+import type { Product, Sku } from '@/domain/Product';
 
 interface InventoryData {
-  productId: string;
+  productId: number;
   storeName: string;
   stockQuantity: number;
   pickupTime: string;
 }
 
 interface RelatedProduct {
-  id: string;
+  id: number;
   name: string;
   slug: string;
   basePrice: number;
@@ -53,7 +35,7 @@ interface RelatedProduct {
 
 const FAVORITES_KEY = 'nike-favorites';
 
-function getFavorites(): string[] {
+function getFavorites(): number[] {
   try {
     return JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]');
   } catch {
@@ -61,11 +43,11 @@ function getFavorites(): string[] {
   }
 }
 
-function setFavorites(favorites: string[]) {
+function setFavorites(favorites: number[]) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
 }
 
-function getFallbackInventory(productId: string): InventoryData[] {
+function getFallbackInventory(productId: number): InventoryData[] {
   return [
     {
       productId,
@@ -126,7 +108,7 @@ export function ProductPage() {
       try {
         const productData = await catalogService.getProductBySlug(slug!);
         if (!cancelled) {
-          setProduct(productData as unknown as Product);
+          setProduct(productData);
           setSelectedSize(null);
           setShowSizeError(false);
         }
@@ -191,7 +173,7 @@ export function ProductPage() {
       try {
         const json = await catalogService.getProducts({ limit: 6 });
         if (!cancelled) {
-          setRelated(json.items as unknown as RelatedProduct[]);
+          setRelated(json.items as RelatedProduct[]);
         }
       } catch {
       } finally {
@@ -257,7 +239,7 @@ export function ProductPage() {
   const handleRelatedQuickAdd = useCallback(
     async (relatedProduct: RelatedProduct) => {
       try {
-        let skuId: string | undefined;
+        let skuId: string | number | undefined;
         if (relatedProduct.skus && relatedProduct.skus.length > 0) {
           const available = relatedProduct.skus.find(
             (s) => s.stockQuantity > 0
