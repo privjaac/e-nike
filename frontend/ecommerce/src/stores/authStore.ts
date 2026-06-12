@@ -101,12 +101,12 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true, error: null });
         try {
-          const payload = await authService.me(token);
+          const user = await authService.me(token);
           set({
             token,
-            user: payload.user,
+            user,
             isAuthenticated: true,
-            isAdmin: (payload.user)?.role === 'admin',
+            isAdmin: user.role === 'admin',
             isLoading: false,
             isInitialized: true,
           });

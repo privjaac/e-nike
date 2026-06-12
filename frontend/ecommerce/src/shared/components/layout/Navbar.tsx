@@ -1,15 +1,37 @@
 import { useState, useEffect, useRef } from 'react';
-import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
 
-const navLinks = [
-  { label: 'New', to: '/' },
-  { label: 'Men', to: '/products' },
-  { label: 'Women', to: '/products' },
-  { label: 'Kids', to: '/products' },
-  { label: 'Sale', to: '/products' },
+interface NavLinkDef {
+  label: string;
+  to: string;
+  match: (pathname: string, search: string) => boolean;
+}
+
+const navLinks: NavLinkDef[] = [
+  { label: 'New', to: '/', match: (p) => p === '/' },
+  {
+    label: 'Men',
+    to: '/products?gender=men',
+    match: (p, s) => p === '/products' && s.includes('gender=men'),
+  },
+  {
+    label: 'Women',
+    to: '/products?gender=women',
+    match: (p, s) => p === '/products' && s.includes('gender=women'),
+  },
+  {
+    label: 'Kids',
+    to: '/products?gender=kids',
+    match: (p, s) => p === '/products' && s.includes('gender=kids'),
+  },
+  {
+    label: 'Sale',
+    to: '/products?sale=true',
+    match: (p, s) => p === '/products' && s.includes('sale=true'),
+  },
 ];
 
 function getInitials(firstName?: string, lastName?: string) {
@@ -87,25 +109,21 @@ export function Navbar() {
         <div className="hidden md:flex gap-8 items-center">
           {navLinks.map((link) => {
             const isSale = link.label === 'Sale';
+            const isActive = link.match(location.pathname, location.search);
             return (
-              <NavLink
+              <Link
                 key={link.label}
                 to={link.to}
-                end={link.to === '/'}
-                className={({ isActive }) =>
-                  [
-                    'font-headline tracking-tighter uppercase font-bold pb-1 transition-colors duration-150 ease-in-out',
-                    isActive && !isSale
-                      ? 'text-on-surface border-b-2 border-primary-container'
-                      : 'text-secondary hover:text-primary-container',
-                    isSale
-                      ? 'text-primary-container hover:text-inverse-primary'
-                      : '',
-                  ].join(' ')
-                }
+                className={[
+                  'font-headline tracking-tighter uppercase font-bold pb-1 transition-colors duration-150 ease-in-out',
+                  isActive && !isSale
+                    ? 'text-on-surface border-b-2 border-primary-container'
+                    : 'text-secondary hover:text-primary-container',
+                  isSale ? 'text-primary-container hover:text-inverse-primary' : '',
+                ].join(' ')}
               >
                 {link.label}
-              </NavLink>
+              </Link>
             );
           })}
         </div>

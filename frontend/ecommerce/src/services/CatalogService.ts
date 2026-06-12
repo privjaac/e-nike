@@ -32,6 +32,7 @@ export interface ProductFilters {
   sport?: string;
   gender?: string;
   search?: string;
+  sale?: boolean;
   page?: number;
   limit?: number;
 }
@@ -55,6 +56,7 @@ export const catalogService = {
     if (filters?.sport) params.set('sport', filters.sport);
     if (filters?.gender) params.set('gender', filters.gender);
     if (filters?.search) params.set('search', filters.search);
+    if (filters?.sale) params.set('sale', 'true');
     if (filters?.page) params.set('page', String(filters.page));
     if (filters?.limit) params.set('limit', String(filters.limit));
 

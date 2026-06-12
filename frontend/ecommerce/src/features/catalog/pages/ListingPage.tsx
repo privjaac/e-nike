@@ -72,7 +72,7 @@ export function ListingPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [selectedSports, setSelectedSports] = useState<string[]>(['Running']);
+  const [selectedSports, setSelectedSports] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('featured');
   const [sortOpen, setSortOpen] = useState(false);
@@ -81,22 +81,20 @@ export function ListingPage() {
   const addToast = useToastStore((s) => s.addToast);
   const [quickAddingId, setQuickAddingId] = useState<string | null>(null);
 
+  const genderFilter = searchParams.get('gender') || undefined;
+  const saleFilter = searchParams.get('sale') || undefined;
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError(null);
 
-    const params = new URLSearchParams();
-    params.set('page', '1');
-    params.set('limit', '24');
-    if (selectedSports.length) params.set('sport', selectedSports.join(','));
-    if (selectedSize) params.set('size', selectedSize);
-    if (searchQuery) params.set('search', searchQuery);
-
     catalogService
       .getProducts({
-        sport: selectedSports.join(','),
-        search: searchQuery,
+        sport: selectedSports.length ? selectedSports.join(',') : undefined,
+        gender: genderFilter,
+        search: searchQuery || undefined,
+        sale: saleFilter === 'true',
         limit: 24,
       })
       .then((json) => {
@@ -114,7 +112,7 @@ export function ListingPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedSports, selectedSize, searchQuery]);
+  }, [selectedSports, selectedSize, searchQuery, genderFilter, saleFilter]);
 
   const sortedProducts = useMemo(() => {
     const list = [...products];
