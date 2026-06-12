@@ -1,10 +1,16 @@
 import 'dotenv/config';
 
+function getEnv(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`Missing required environment variable: ${key}`);
+  return value;
+}
+
 export const config = {
-  port: parseInt(process.env.PORT || '3001', 10),
-  databaseUrl: process.env.DATABASE_URL || './src/db/e-nike.sqlite',
-  jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me',
-  jwtExpiresIn: '7d',
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
-  nodeEnv: process.env.NODE_ENV || 'development',
+  port: parseInt(getEnv('PORT'), 10),
+  databaseUrl: getEnv('DATABASE_URL'),
+  jwtSecret: getEnv('JWT_SECRET'),
+  jwtExpiresIn: getEnv('JWT_EXPIRES_IN'),
+  corsOrigin: getEnv('CORS_ORIGIN'),
+  nodeEnv: getEnv('NODE_ENV'),
 };

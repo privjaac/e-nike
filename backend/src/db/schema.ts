@@ -1,7 +1,6 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, index } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
-// ==================== AUTH / MEMBERSHIP ====================
 export const users = sqliteTable('users', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   email: text('email').notNull().unique(),
@@ -18,7 +17,6 @@ export const users = sqliteTable('users', {
   updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-// ==================== CATALOG ====================
 export const categories = sqliteTable('categories', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -56,7 +54,6 @@ export const skus = sqliteTable('skus', {
   weightGrams: integer('weight_grams', { mode: 'number' }),
 });
 
-// ==================== INVENTORY / NODES ====================
 export const inventoryNodes = sqliteTable('inventory_nodes', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
@@ -75,7 +72,6 @@ export const inventory = sqliteTable('inventory', {
   updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-// ==================== CART ====================
 export const carts = sqliteTable('carts', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   userId: integer('user_id', { mode: 'number' }),
@@ -83,7 +79,9 @@ export const carts = sqliteTable('carts', {
   status: text('status', { enum: ['active', 'converted', 'abandoned'] }).notNull().default('active'),
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
-});
+}, (table) => [
+  index('idx_carts_session').on(table.sessionId),
+]);
 
 export const cartItems = sqliteTable('cart_items', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
@@ -94,7 +92,6 @@ export const cartItems = sqliteTable('cart_items', {
   addedAt: text('added_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-// ==================== ORDERS (OMS) ====================
 export const orders = sqliteTable('orders', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   userId: integer('user_id', { mode: 'number' }).notNull(),
@@ -113,7 +110,6 @@ export const orders = sqliteTable('orders', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-// ==================== FAVORITES ====================
 export const favorites = sqliteTable('favorites', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   userId: integer('user_id', { mode: 'number' }).notNull(),
@@ -121,7 +117,6 @@ export const favorites = sqliteTable('favorites', {
   createdAt: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
-// ==================== PROMOTIONS ====================
 export const promotions = sqliteTable('promotions', {
   id: integer('id', { mode: 'number' }).primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
