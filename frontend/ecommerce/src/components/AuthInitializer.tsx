@@ -11,9 +11,7 @@ export function AuthInitializer() {
     if (didInit.current) return;
     didInit.current = true;
 
-    fetchMe().then(() => {
-      fetchCart();
-    });
+    fetchMe().then(() => fetchCart());
   }, [fetchMe, fetchCart]);
 
   return null;
