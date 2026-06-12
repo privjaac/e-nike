@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { favoritesService, type FavoriteItem } from '../services/favorites.service';
+import { favoritesService, type FavoriteItem } from '@/services/FavoritesService';
 import { useAuthStore } from './authStore';
 
 export type { FavoriteItem };

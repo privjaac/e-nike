@@ -1,15 +1,15 @@
 import { create } from 'zustand';
-import type { ToastItem } from '../components/Toast';
+import type { ToastItem } from '@/shared/components/Toast';
 
 interface ToastState {
   toasts: ToastItem[];
-  addToast: (message: string, type?: 'success' | 'error') => void;
+  addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
 }
 
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
-  addToast: (message, type = 'success') => {
+  addToast: (message, type: 'success' | 'error' | 'info' = 'success') => {
     const id = Math.random().toString(36).slice(2) + Date.now().toString(36);
     set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
     setTimeout(() => {

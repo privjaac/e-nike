@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { authService, type User } from '../services/auth.service';
+import { authService, type User } from '@/services/AuthService';
 
 export type { User };
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { cartService, type CartItem } from '../services/cart.service';
+import { cartService, type CartItem } from '@/services/CartService';
 import { useAuthStore } from './authStore';
 
 export type { CartItem };
