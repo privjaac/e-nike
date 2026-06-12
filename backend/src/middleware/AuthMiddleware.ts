@@ -1,6 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import { verify } from 'hono/jwt';
-import { config } from '../config/env';
+import { config } from '@/config/Env';
 
 export const authMiddleware = createMiddleware(async (c, next) => {
   const authHeader = c.req.header('Authorization');
@@ -15,6 +15,20 @@ export const authMiddleware = createMiddleware(async (c, next) => {
   } catch {
     return c.json({ success: false, error: 'Invalid token' }, 401);
   }
+});
+
+export const optionalAuthMiddleware = createMiddleware(async (c, next) => {
+  const authHeader = c.req.header('Authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    try {
+      const payload = await verify(token, config.jwtSecret, 'HS256');
+      c.set('user', payload);
+    } catch {
+      // token inválido: continuar sin usuario autenticado
+    }
+  }
+  await next();
 });
 
 export const requireRole = (...roles: string[]) =>

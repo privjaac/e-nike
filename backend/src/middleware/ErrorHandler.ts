@@ -1,4 +1,5 @@
-import type { ErrorHandler } from 'hono';
+import { ErrorHandler } from 'hono';
+import { config } from '@/config/Env';
 
 export const errorHandler: ErrorHandler = (err, c) => {
   console.error(err);
@@ -7,7 +8,7 @@ export const errorHandler: ErrorHandler = (err, c) => {
     {
       success: false,
       error: err.message || 'Internal Server Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
+      ...(config.nodeEnv === 'development' && { stack: err.stack }),
     },
     status as any
   );
