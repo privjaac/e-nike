@@ -257,7 +257,6 @@ function useProductPerformance() {
               const inv = await inventoryService.getProductInventory(p.id, token);
               inventory = inv.stock.reduce((sum, s) => sum + s.quantity, 0);
             } catch {
-              // inventory stays null if endpoint fails
             }
 
             return {

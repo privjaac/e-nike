@@ -28,7 +28,6 @@ async function seed() {
   let prods = existingProds;
   if (existingProds.length === 0) {
     prods = await db.insert(schema.products).values([
-      // Men
       {
         name: 'Nike Air Max Dn',
         slug: 'nike-air-max-dn',
@@ -133,7 +132,6 @@ async function seed() {
         isMemberOnly: false,
         isFullPrice: true,
       },
-      // Women
       {
         name: 'Nike Air Max 90',
         slug: 'nike-air-max-90-women',
@@ -186,7 +184,6 @@ async function seed() {
         isMemberOnly: false,
         isFullPrice: true,
       },
-      // Kids
       {
         name: 'Nike Star Runner 4',
         slug: 'nike-star-runner-4',
@@ -213,7 +210,6 @@ async function seed() {
         isMemberOnly: false,
         isFullPrice: true,
       },
-      // Sale items
       {
         name: 'Nike Revolution 6',
         slug: 'nike-revolution-6',

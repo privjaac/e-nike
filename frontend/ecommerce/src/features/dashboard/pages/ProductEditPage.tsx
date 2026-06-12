@@ -207,7 +207,6 @@ export function ProductEditPage() {
       )}
 
       <div className="space-y-8">
-        {/* Product Details */}
         <section className="bg-surface-container-lowest border border-outline-variant/10 p-6">
           <h2 className="font-headline font-black text-lg uppercase italic mb-6">Product Details</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -352,7 +351,6 @@ export function ProductEditPage() {
           </div>
         </section>
 
-        {/* SKUs */}
         <section className="bg-surface-container-lowest border border-outline-variant/10 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-headline font-black text-lg uppercase italic">SKUs (Sizes & Stock)</h2>
@@ -365,7 +363,6 @@ export function ProductEditPage() {
             </button>
           </div>
 
-          {/* Existing SKUs */}
           {skus.length > 0 && (
             <div className="mb-6">
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">Existing</h3>
@@ -392,7 +389,6 @@ export function ProductEditPage() {
             </div>
           )}
 
-          {/* New SKU Drafts */}
           {skuDrafts.length > 0 && (
             <div>
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant mb-3">New</h3>
@@ -457,7 +453,6 @@ export function ProductEditPage() {
           )}
         </section>
 
-        {/* Actions */}
         <div className="flex justify-end gap-3">
           <button
             onClick={() => navigate('/dashboard/products')}

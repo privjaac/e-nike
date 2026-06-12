@@ -25,7 +25,6 @@ export const optionalAuthMiddleware = createMiddleware(async (c, next) => {
       const payload = await verify(token, config.jwtSecret, 'HS256');
       c.set('user', payload);
     } catch {
-      // token inválido: continuar sin usuario autenticado
     }
   }
   await next();
