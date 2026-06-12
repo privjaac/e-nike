@@ -1,19 +1,19 @@
-import type { Context } from 'hono';
-import { AuthService } from '../services/auth.service';
-import type { LoginDto, RegisterDto } from '../dtos';
+import { Context } from 'hono';
+import type { IAuthService } from '@/services/auth/IAuthService';
+import type { LoginDto, RegisterDto } from '@/dtos/AuthDto';
 
 export class AuthController {
-  private service = new AuthService();
+  constructor(private authService: IAuthService) {}
 
   async register(c: Context) {
     const data = await c.req.json<RegisterDto>();
-    const result = await this.service.register(data);
+    const result = await this.authService.register(data);
     return c.json({ success: true, data: result }, 201);
   }
 
   async login(c: Context) {
     const data = await c.req.json<LoginDto>();
-    const result = await this.service.login(data);
+    const result = await this.authService.login(data);
     return c.json({ success: true, data: result });
   }
 
@@ -23,7 +23,7 @@ export class AuthController {
       return c.json({ success: false, error: 'Unauthorized' }, 401);
     }
     const token = authHeader.slice(7);
-    const user = await this.service.me(token);
+    const user = await this.authService.me(token);
     return c.json({ success: true, data: user });
   }
 }
