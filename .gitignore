@@ -1,5 +1,5 @@
 /.idea/
-/base/
+/.base/
 .env
 .env.*
 !.env.example
