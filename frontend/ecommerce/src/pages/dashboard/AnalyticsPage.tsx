@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BarChart3, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-
-const API_BASE = 'http://localhost:3001/api/v1';
+import { dashboardService } from '../../services/dashboard.service';
 
 interface MetricItem {
   id: string;
@@ -93,13 +92,13 @@ export function AnalyticsPage() {
 
     async function load() {
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_BASE}/dashboard/metrics`, { headers });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { data?: { metrics?: MetricItem[] } };
-        const data = json.data?.metrics ?? [];
+        const json = await dashboardService.getMetrics(token);
+        const data: MetricItem[] = [
+          { id: '1', label: 'Total Orders', value: String(json.metrics.totalOrders), delta: 'STABLE', deltaType: 'stable' },
+          { id: '2', label: 'Total Products', value: String(json.metrics.totalProducts), delta: 'STABLE', deltaType: 'stable' },
+          { id: '3', label: 'Total Users', value: String(json.metrics.totalUsers), delta: 'STABLE', deltaType: 'stable' },
+          { id: '4', label: 'Avg Order Value', value: `$${json.metrics.avgOrderValue}`, delta: 'STABLE', deltaType: 'stable' },
+        ];
         if (!cancelled) setMetrics(data);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load metrics');

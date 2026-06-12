@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Truck, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-
-const API_BASE = 'http://localhost:3001/api/v1';
+import { orderService } from '../../services/order.service';
 
 interface Order {
   id: number;
@@ -26,21 +25,7 @@ export function OrdersPage() {
       setLoading(true);
       setError(null);
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`${API_BASE}/orders`, { headers });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const json = (await res.json()) as { data?: { orders?: Order[] } | Order[] };
-
-        let data: Order[] = [];
-        const payload = (json as any).data ?? json;
-        if (Array.isArray(payload)) {
-          data = payload;
-        } else if (Array.isArray(payload?.orders)) {
-          data = payload.orders;
-        }
-
+        const data = await orderService.getAll(token);
         if (!cancelled) setOrders(data);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load orders');

@@ -1,25 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Package, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
-
-const API_BASE = 'http://localhost:3001/api/v1';
-
-interface CatalogProduct {
-  id: string;
-  slug: string;
-  name: string;
-  sku?: string;
-  category: string;
-  imageUrl: string;
-}
-
-interface InventoryItem {
-  sku: string;
-  size: string;
-  node: string;
-  quantity: number;
-  reserved: number;
-}
+import { catalogService } from '../../services/catalog.service';
+import { inventoryService } from '../../services/inventory.service';
 
 interface InventoryProduct {
   id: string;
@@ -49,42 +32,21 @@ export function InventoryPage() {
       setLoading(true);
       setError(null);
       try {
-        const headers: Record<string, string> = {};
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const productsRes = await fetch(`${API_BASE}/catalog/products?limit=100`, { headers });
-        if (!productsRes.ok) throw new Error(`Products HTTP ${productsRes.status}`);
-        const productsJson = (await productsRes.json()) as { data?: { items?: CatalogProduct[] } };
-        const catalogItems = productsJson.data?.items ?? [];
+        const catalog = await catalogService.getProducts({ limit: 100 });
+        const catalogItems = catalog.items;
 
         const mapped: InventoryProduct[] = [];
 
         await Promise.all(
           catalogItems.map(async (product) => {
             try {
-              const invRes = await fetch(`${API_BASE}/inventory/product/${product.id}`, { headers });
-              if (!invRes.ok) return;
-              const invJson = (await invRes.json()) as {
-                data?: InventoryItem | InventoryItem[] | { items?: InventoryItem[] };
-              };
-              const payload = invJson.data;
-              if (!payload) return;
-
-              let items: InventoryItem[] = [];
-              if (Array.isArray(payload)) {
-                items = payload;
-              } else if ('items' in payload && Array.isArray(payload.items)) {
-                items = payload.items;
-              } else {
-                items = [payload as InventoryItem];
-              }
-
-              const totalStock = items.reduce((sum, item) => sum + (item.quantity ?? 0), 0);
+              const inv = await inventoryService.getProductInventory(product.id, token);
+              const totalStock = inv.stock.reduce((sum, s) => sum + s.quantity, 0);
 
               mapped.push({
-                id: product.id,
+                id: String(product.id),
                 name: product.name,
-                sku: product.sku || product.slug.toUpperCase(),
+                sku: product.skus?.[0]?.sku || product.slug.toUpperCase(),
                 image: product.imageUrl,
                 totalStock,
                 status: getStatus(totalStock),

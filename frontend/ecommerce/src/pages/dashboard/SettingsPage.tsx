@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Settings, LogOut, User, Mail, Shield, Crown, Save, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../stores/authStore';
 import { useNavigate } from 'react-router-dom';
+import { userService } from '../../services/user.service';
 
-const API_BASE = 'http://localhost:3001/api/v1';
+
 
 export function SettingsPage() {
   const user = useAuthStore((s) => s.user);
@@ -25,28 +26,7 @@ export function SettingsPage() {
     setSaveSuccess(false);
 
     try {
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
-
-      const res = await fetch(`${API_BASE}/users/profile`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify({ firstName, lastName, email }),
-      });
-
-      if (!res.ok) {
-        let msg = `HTTP ${res.status}`;
-        try {
-          const json = (await res.json()) as { message?: string; error?: string };
-          msg = json.message || json.error || msg;
-        } catch {
-          // response is not JSON
-        }
-        throw new Error(msg);
-      }
-
+      await userService.updateProfile({ firstName, lastName, email }, token!);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
