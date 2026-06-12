@@ -1,7 +1,9 @@
 import { create } from 'zustand';
+import { cartService, type CartItem } from '../services/cart.service';
 import { useAuthStore } from './authStore';
 
-const API_URL = 'http://localhost:3001/api/v1';
+export type { CartItem };
+
 const SESSION_KEY = 'e-nike-session-id';
 
 function getOrCreateSessionId(): string {
@@ -11,24 +13,6 @@ function getOrCreateSessionId(): string {
     localStorage.setItem(SESSION_KEY, sessionId);
   }
   return sessionId;
-}
-
-export interface CartItem {
-  id: string;
-  skuId: string;
-  quantity: number;
-  unitPrice: number;
-  name?: string;
-  image?: string;
-  product?: {
-    name: string;
-    imageUrl: string;
-    slug: string;
-  };
-  sku?: {
-    size: string;
-    color: string;
-  };
 }
 
 interface CartState {
@@ -66,32 +50,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const sessionId = getOrCreateSessionId();
     set({ isLoading: true, error: null });
     try {
-      const body: Record<string, unknown> = {
-        skuId,
-        quantity,
-        unitPrice,
-        sessionId,
-      };
-      if (token && cartId) {
-        body.cartId = cartId;
-      }
-
-      const res = await fetch(`${API_URL}/cart/items`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to add item');
-      }
-
-      // Refetch to get accurate cart state
+      await cartService.addItem(skuId, quantity, unitPrice, sessionId, cartId, token);
       await get().fetchCart();
     } catch (err) {
       set({
@@ -106,19 +65,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const token = useAuthStore.getState().token;
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/cart/items/${Number(itemId)}`, {
-        method: 'DELETE',
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to remove item');
-      }
-
+      await cartService.removeItem(itemId, token);
       await get().fetchCart();
     } catch (err) {
       set({
@@ -133,21 +80,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const token = useAuthStore.getState().token;
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/cart/items/${Number(itemId)}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ quantity }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to update quantity');
-      }
-
+      await cartService.updateItem(itemId, quantity, token);
       await get().fetchCart();
     } catch (err) {
       set({
@@ -164,26 +97,7 @@ export const useCartStore = create<CartState>()((set, get) => ({
     const cartId = get().cartId;
     set({ isLoading: true, error: null });
     try {
-      let url: string;
-      if (cartId && token) {
-        url = `${API_URL}/cart/${cartId}`;
-      } else {
-        url = `${API_URL}/cart?sessionId=${encodeURIComponent(sessionId)}`;
-      }
-
-      const res = await fetch(url, {
-        headers: {
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-      });
-
-      const responseData = await res.json();
-
-      if (!res.ok) {
-        throw new Error(responseData.message || 'Failed to fetch cart');
-      }
-
-      const cart = responseData.data;
+      const cart = await cartService.getCart(cartId || undefined, sessionId, token);
       const items = cart.items || [];
       set({
         items,

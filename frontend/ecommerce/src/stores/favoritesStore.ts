@@ -1,7 +1,8 @@
 import { create } from 'zustand';
+import { favoritesService, type FavoriteItem } from '../services/favorites.service';
 import { useAuthStore } from './authStore';
 
-const API_URL = 'http://localhost:3001/api/v1';
+export type { FavoriteItem };
 
 export interface FavoriteProduct {
   id: string;
@@ -22,6 +23,18 @@ interface FavoritesState {
   removeFavorite: (productId: string) => Promise<void>;
 }
 
+function mapToFavoriteProduct(item: FavoriteItem): FavoriteProduct {
+  const p = item.product;
+  return {
+    id: String(item.id),
+    name: p.name,
+    slug: p.slug,
+    price: p.basePrice || 0,
+    imageUrl: p.imageUrl,
+    category: p.sport,
+  };
+}
+
 export const useFavoritesStore = create<FavoritesState>()((set, get) => ({
   items: [],
   isLoading: false,
@@ -36,21 +49,8 @@ export const useFavoritesStore = create<FavoritesState>()((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/favorites`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to fetch favorites');
-      }
-
-      const favorites: FavoriteProduct[] = data.data || data || [];
-      set({ items: favorites, isLoading: false });
+      const favorites = await favoritesService.getAll(token);
+      set({ items: favorites.map(mapToFavoriteProduct), isLoading: false });
     } catch (err) {
       set({
         error: err instanceof Error ? err.message : 'Failed to fetch favorites',
@@ -65,21 +65,7 @@ export const useFavoritesStore = create<FavoritesState>()((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/favorites`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to add favorite');
-      }
-
+      await favoritesService.add(productId, token);
       await get().fetchFavorites();
     } catch (err) {
       set({
@@ -96,19 +82,7 @@ export const useFavoritesStore = create<FavoritesState>()((set, get) => ({
 
     set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_URL}/favorites/${productId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to remove favorite');
-      }
-
+      await favoritesService.remove(productId, token);
       await get().fetchFavorites();
     } catch (err) {
       set({

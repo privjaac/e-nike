@@ -1,19 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { authService, type User } from '../services/auth.service';
 
-const API_URL = 'http://localhost:3001/api/v1';
-
-export interface User {
-  id: number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: 'customer' | 'admin' | 'merchandiser';
-  membershipTier: string;
-  preferences?: Record<string, unknown>;
-  createdAt?: string;
-  updatedAt?: string;
-}
+export type { User };
 
 export interface RegisterData {
   firstName: string;
@@ -54,20 +43,8 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${API_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-          });
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            throw new Error(data.error || data.message || 'Login failed');
-          }
-
-          const payload = data.data || data;
-          const token = payload.token || payload.accessToken;
+          const payload = await authService.login(email, password);
+          const token = payload.token;
           set({
             token,
             user: payload.user,
@@ -87,20 +64,8 @@ export const useAuthStore = create<AuthState>()(
       register: async (data: RegisterData) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${API_URL}/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-          });
-
-          const responseData = await res.json();
-
-          if (!res.ok) {
-            throw new Error(responseData.error || responseData.message || 'Registration failed');
-          }
-
-          const payload = responseData.data || responseData;
-          const token = payload.token || payload.accessToken;
+          const payload = await authService.register(data);
+          const token = payload.token;
           set({
             token,
             user: payload.user,
@@ -136,24 +101,12 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${API_URL}/auth/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          const data = await res.json();
-
-          if (!res.ok) {
-            throw new Error(data.error || data.message || 'Failed to fetch user');
-          }
-
-          const payload = data.data || data;
+          const payload = await authService.me(token);
           set({
-            user: payload.user || payload,
+            token,
+            user: payload.user,
             isAuthenticated: true,
-            isAdmin: (payload.user || payload)?.role === 'admin',
+            isAdmin: (payload.user)?.role === 'admin',
             isLoading: false,
             isInitialized: true,
           });
