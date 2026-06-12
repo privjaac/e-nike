@@ -2,7 +2,7 @@ import type { Category, Product, Sku } from '@/domain/Product';
 
 import { db } from '@/db/Database';
 import { products, categories, skus } from '@/db/Schema';
-import { eq, like, and, sql } from 'drizzle-orm';
+import { eq, like, and, sql, isNotNull } from 'drizzle-orm';
 import type { ICatalogRepository } from '@/repositories/catalog/ICatalogRepository';
 
 export class CatalogRepository implements ICatalogRepository {
@@ -10,13 +10,15 @@ export class CatalogRepository implements ICatalogRepository {
     sport?: string;
     gender?: string;
     search?: string;
+    sale?: boolean;
     limit: number;
     offset: number;
   }): Promise<Product[]> {
     const conditions = [];
-    if (filters.sport) conditions.push(eq(products.sport, filters.sport as any));
-    if (filters.gender) conditions.push(eq(products.gender, filters.gender as any));
+    if (filters.sport) conditions.push(eq(sql`lower(${products.sport})`, filters.sport.toLowerCase()));
+    if (filters.gender) conditions.push(eq(sql`lower(${products.gender})`, filters.gender.toLowerCase()));
     if (filters.search) conditions.push(like(products.name, `%${filters.search}%`));
+    if (filters.sale) conditions.push(isNotNull(products.salePrice));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
@@ -29,11 +31,12 @@ export class CatalogRepository implements ICatalogRepository {
       .all() as Product[];
   }
 
-  async count(filters: { sport?: string; gender?: string; search?: string }): Promise<number> {
+  async count(filters: { sport?: string; gender?: string; search?: string; sale?: boolean }): Promise<number> {
     const conditions = [];
-    if (filters.sport) conditions.push(eq(products.sport, filters.sport as any));
-    if (filters.gender) conditions.push(eq(products.gender, filters.gender as any));
+    if (filters.sport) conditions.push(eq(sql`lower(${products.sport})`, filters.sport.toLowerCase()));
+    if (filters.gender) conditions.push(eq(sql`lower(${products.gender})`, filters.gender.toLowerCase()));
     if (filters.search) conditions.push(like(products.name, `%${filters.search}%`));
+    if (filters.sale) conditions.push(isNotNull(products.salePrice));
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 

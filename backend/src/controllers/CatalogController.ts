@@ -14,6 +14,7 @@ export class CatalogController {
       sport: parsed.sport,
       gender: parsed.gender,
       search: parsed.search,
+      sale: c.req.query('sale') === 'true',
       page: parsed.page,
       limit: parsed.limit,
     });

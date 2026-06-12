@@ -4,7 +4,7 @@ import type { ICatalogService, PaginatedProducts } from '@/services/catalog/ICat
 export class CatalogService implements ICatalogService {
   constructor(private catalogRepository: ICatalogRepository) {}
 
-  async getProducts(filters: { category?: string; sport?: string; gender?: string; search?: string; page: number; limit: number }): Promise<PaginatedProducts> {
+  async getProducts(filters: { category?: string; sport?: string; gender?: string; search?: string; sale?: boolean; page: number; limit: number }): Promise<PaginatedProducts> {
     const { page, limit } = filters;
     const offset = (page - 1) * limit;
 
@@ -12,6 +12,7 @@ export class CatalogService implements ICatalogService {
       sport: filters.sport,
       gender: filters.gender,
       search: filters.search,
+      sale: filters.sale,
       limit,
       offset,
     });
@@ -20,6 +21,7 @@ export class CatalogService implements ICatalogService {
       sport: filters.sport,
       gender: filters.gender,
       search: filters.search,
+      sale: filters.sale,
     });
 
     return {

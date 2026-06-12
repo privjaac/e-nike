@@ -6,7 +6,7 @@ export interface PaginatedProducts {
 }
 
 export interface ICatalogService {
-  getProducts(filters: { category?: string; sport?: string; gender?: string; search?: string; page: number; limit: number }): Promise<PaginatedProducts>;
+  getProducts(filters: { category?: string; sport?: string; gender?: string; search?: string; sale?: boolean; page: number; limit: number }): Promise<PaginatedProducts>;
   getProductBySlug(slug: string): Promise<ProductWithSkus | null>;
   getCategories(): Promise<Category[]>;
 }
