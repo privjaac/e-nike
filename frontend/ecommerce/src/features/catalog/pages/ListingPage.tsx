@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ChevronDown, ShoppingCart, Bolt, Check } from 'lucide-react';
+import { ChevronDown, ShoppingCart, Check } from 'lucide-react';
 import { useCartStore } from '@/stores/cartStore';
 import { useToastStore } from '@/stores/toastStore';
 import { catalogService } from '@/services/CatalogService';
@@ -296,23 +296,6 @@ export function ListingPage() {
               </div>
             </div>
 
-            <div className="p-6 bg-primary-container/30 rounded-xl border border-primary-container">
-              <div className="flex items-center justify-between mb-2">
-                <span className="font-headline font-bold text-on-primary-container">
-                  Express Delivery
-                </span>
-                <Bolt className="w-5 h-5 text-on-primary-container fill-current" />
-              </div>
-              <p className="text-xs text-on-primary-container mb-4">
-                Get your gear delivered within 24 hours in select regions.
-              </p>
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-5 bg-zinc-900 rounded-full relative p-1 cursor-pointer">
-                  <div className="w-3 h-3 bg-primary-container rounded-full translate-x-5" />
-                </div>
-                <span className="text-xs font-bold">ACTIVE</span>
-              </div>
-            </div>
           </aside>
 
           <div className="lg:col-span-9">
