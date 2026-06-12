@@ -15,6 +15,13 @@
       "when": 1781144763896,
       "tag": "0001_thin_calypso",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1781247322619,
+      "tag": "0002_cart_constraints",
+      "breakpoints": true
     }
   ]
 }
