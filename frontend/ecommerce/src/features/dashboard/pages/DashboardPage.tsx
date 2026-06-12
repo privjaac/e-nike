@@ -324,7 +324,6 @@ export function DashboardPage() {
   const [isSubmittingPromotion, setIsSubmittingPromotion] = useState(false);
   const [automaticMarkdowns, setAutomaticMarkdowns] = useState(promotionData.automaticMarkdowns);
 
-  // Promotions list for the gate
   const [promotionsList, setPromotionsList] = useState<import('@/services/PromotionService').Promotion[]>([]);
   const [selectedPromotionId, setSelectedPromotionId] = useState<number | null>(null);
   const [promotionsLoading, setPromotionsLoading] = useState(false);
@@ -341,14 +340,12 @@ export function DashboardPage() {
     try {
       const list = await promotionService.getAll(false, token);
       setPromotionsList(list);
-      // Pick the first active one as selected if none selected
       const active = list.find((p) => p.isActive);
       if (active && selectedPromotionId === null) {
         setSelectedPromotionId(active.id);
         setAutomaticMarkdowns(active.isAutoMarkdown);
       }
     } catch {
-      // ignore
     } finally {
       setPromotionsLoading(false);
     }

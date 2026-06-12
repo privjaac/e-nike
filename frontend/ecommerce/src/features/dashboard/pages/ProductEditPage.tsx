@@ -121,7 +121,6 @@ export function ProductEditPage() {
         savedProduct = await adminCatalogService.update(productId!, payload, token);
       }
 
-      // Save SKUs
       const targetProductId = savedProduct.id;
       for (const draft of skuDrafts) {
         if (draft.isNew) {

@@ -9,7 +9,6 @@ const db = drizzle(sqlite, { schema });
 async function seed() {
   console.log('🌱 Seeding database...');
 
-  // Seed categories (skip if already exist)
   const existingCats = await db.select().from(schema.categories).all();
   let cats = existingCats;
   if (existingCats.length === 0) {
@@ -25,7 +24,6 @@ async function seed() {
   const catMap = new Map(cats.map((c) => [c.slug, c.id]));
   const getCatId = (slug: string) => catMap.get(slug) ?? cats[0].id;
 
-  // Seed products (skip if already exist)
   const existingProds = await db.select().from(schema.products).all();
   let prods = existingProds;
   if (existingProds.length === 0) {
@@ -249,12 +247,11 @@ async function seed() {
     console.log('⏭️ Products already seeded, skipping...');
   }
 
-  // Seed SKUs
   const sizes = ['8', '8.5', '9', '9.5', '10', '10.5', '11', '11.5', '12'];
   const existingSkus = await db.select().from(schema.skus).all();
   if (existingSkus.length === 0) {
     for (const prod of prods) {
-      if (prod.categoryId === getCatId('apparel')) continue; // skip apparel
+      if (prod.categoryId === getCatId('apparel')) continue;
       for (const size of sizes) {
         await db.insert(schema.skus).values({
           productId: prod.id,
@@ -268,7 +265,6 @@ async function seed() {
     }
   }
 
-  // Seed inventory nodes
   const existingNodes = await db.select().from(schema.inventoryNodes).all();
   let nodes = existingNodes;
   if (existingNodes.length === 0) {
@@ -279,7 +275,6 @@ async function seed() {
     ]).returning().all();
   }
 
-  // Seed inventory
   const allSkus = await db.select().from(schema.skus).all();
   const existingInventory = await db.select().from(schema.inventory).all();
   if (existingInventory.length === 0) {
@@ -295,7 +290,6 @@ async function seed() {
     }
   }
 
-  // Seed users
   const existingUsers = await db.select().from(schema.users).all();
   if (existingUsers.length === 0) {
     const bcrypt = await import('bcryptjs');
@@ -320,7 +314,6 @@ async function seed() {
     });
   }
 
-  // Seed promotions
   const existingPromos = await db.select().from(schema.promotions).all();
   if (existingPromos.length === 0) {
     await db.insert(schema.promotions).values({
