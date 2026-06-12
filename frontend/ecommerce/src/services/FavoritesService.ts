@@ -1,4 +1,4 @@
-import { get, post, del } from './api';
+import { get, post, del } from '@/services/api';
 
 export interface FavoriteProduct {
   id: number;

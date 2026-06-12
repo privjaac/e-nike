@@ -1,4 +1,4 @@
-import { put } from './api';
+import { put } from '@/services/api';
 
 export interface UserProfile {
   id: number;

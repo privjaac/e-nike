@@ -1,4 +1,4 @@
-import { get } from './api';
+import { get } from '@/services/api';
 
 export interface InventoryNode {
   id: number;

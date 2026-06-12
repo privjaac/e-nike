@@ -1,4 +1,4 @@
-import { get, post } from './api';
+import { get, post } from '@/services/api';
 
 export interface Order {
   id: number;

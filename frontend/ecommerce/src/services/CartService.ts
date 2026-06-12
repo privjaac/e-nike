@@ -1,4 +1,4 @@
-import { get, post, patch, del } from './api';
+import { get, post, patch, del } from '@/services/api';
 
 export interface CartItem {
   id: string;

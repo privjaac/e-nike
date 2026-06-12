@@ -1,9 +1,4 @@
-/**
- * Base HTTP client for the E-NIKE API.
- * All service modules use this to communicate with the backend.
- */
-
-export const API_BASE = 'http://localhost:3001/api/v1';
+export const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export interface ApiResponse<T = unknown> {
   success: boolean;
