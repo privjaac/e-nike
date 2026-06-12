@@ -1,9 +1,12 @@
-import { db } from '../db';
-import { inventory, inventoryNodes, skus } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
-import type { InventoryStock, InventoryNode, Sku } from '../types';
+import type { InventoryNode, InventoryStock } from '@/domain/Inventory';
+import type { Sku } from '@/domain/Product';
 
-export class InventoryRepository {
+import { db } from '@/db/Database';
+import { inventory, inventoryNodes, skus } from '@/db/Schema';
+import { eq, sql } from 'drizzle-orm';
+import type { IInventoryRepository } from '@/repositories/inventory/IInventoryRepository';
+
+export class InventoryRepository implements IInventoryRepository {
   async findSkusByProductId(productId: number): Promise<Sku[]> {
     return db.select().from(skus).where(eq(skus.productId, productId)).all() as Sku[];
   }

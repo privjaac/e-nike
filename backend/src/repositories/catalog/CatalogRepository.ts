@@ -1,9 +1,11 @@
-import { db } from '../db';
-import { products, categories, skus } from '../db/schema';
-import { eq, like, and, sql } from 'drizzle-orm';
-import type { Product, Category, Sku } from '../types';
+import type { Category, Product, Sku } from '@/domain/Product';
 
-export class CatalogRepository {
+import { db } from '@/db/Database';
+import { products, categories, skus } from '@/db/Schema';
+import { eq, like, and, sql } from 'drizzle-orm';
+import type { ICatalogRepository } from '@/repositories/catalog/ICatalogRepository';
+
+export class CatalogRepository implements ICatalogRepository {
   async findAll(filters: {
     sport?: string;
     gender?: string;

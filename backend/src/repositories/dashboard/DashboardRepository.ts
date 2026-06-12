@@ -1,8 +1,9 @@
-import { db } from '../db';
-import { orders, products, users, inventory } from '../db/schema';
+import { db } from '@/db/Database';
+import { orders, products, users, inventory } from '@/db/Schema';
 import { sql } from 'drizzle-orm';
+import type { IDashboardRepository } from '@/repositories/dashboard/IDashboardRepository';
 
-export class DashboardRepository {
+export class DashboardRepository implements IDashboardRepository {
   async countOrders(): Promise<number> {
     const result = await db.select({ count: sql<number>`count(*)` }).from(orders).get();
     return result?.count || 0;

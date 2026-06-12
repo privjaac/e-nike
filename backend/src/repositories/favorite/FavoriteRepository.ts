@@ -1,9 +1,11 @@
-import { db } from '../db';
-import { favorites, products } from '../db/schema';
-import { eq, and } from 'drizzle-orm';
-import type { Favorite, FavoriteWithProduct } from '../types';
+import type { Favorite, FavoriteWithProduct } from '@/domain/Favorite';
 
-export class FavoriteRepository {
+import { db } from '@/db/Database';
+import { favorites, products } from '@/db/Schema';
+import { eq, and } from 'drizzle-orm';
+import type { IFavoriteRepository } from '@/repositories/favorite/IFavoriteRepository';
+
+export class FavoriteRepository implements IFavoriteRepository {
   async findByUser(userId: number): Promise<FavoriteWithProduct[]> {
     const rows = await db
       .select({

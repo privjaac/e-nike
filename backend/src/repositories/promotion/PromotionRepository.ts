@@ -1,9 +1,11 @@
-import { db } from '../db';
-import { promotions } from '../db/schema';
-import { eq, gte, lte, and, sql } from 'drizzle-orm';
-import type { Promotion } from '../types';
+import type { Promotion } from '@/domain/Promotion';
 
-export class PromotionRepository {
+import { db } from '@/db/Database';
+import { promotions } from '@/db/Schema';
+import { eq, gte, lte, and, sql } from 'drizzle-orm';
+import type { IPromotionRepository } from '@/repositories/promotion/IPromotionRepository';
+
+export class PromotionRepository implements IPromotionRepository {
   async findAll(): Promise<Promotion[]> {
     return db.select().from(promotions).all() as Promotion[];
   }

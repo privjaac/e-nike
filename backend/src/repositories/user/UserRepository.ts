@@ -1,14 +1,16 @@
-import { db } from '../db';
-import { users } from '../db/schema';
+import type { SafeUser, User } from '@/domain/User';
+
+import { db } from '@/db/Database';
+import { users } from '@/db/Schema';
 import { eq, sql } from 'drizzle-orm';
-import type { User, SafeUser } from '../types';
+import type { IUserRepository } from '@/repositories/user/IUserRepository';
 
 function toSafeUser(user: User): SafeUser {
   const { passwordHash, ...safe } = user;
   return safe as SafeUser;
 }
 
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | undefined> {
     return db.select().from(users).where(eq(users.email, email)).get() as User | undefined;
   }

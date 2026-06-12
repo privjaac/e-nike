@@ -1,9 +1,12 @@
-import { db } from '../db';
-import { orders, cartItems, skus, products } from '../db/schema';
-import { eq } from 'drizzle-orm';
-import type { Order, CartItem } from '../types';
+import type { CartItem } from '@/domain/Cart';
+import type { Order } from '@/domain/Order';
 
-export class OrderRepository {
+import { db } from '@/db/Database';
+import { orders, cartItems, skus, products } from '@/db/Schema';
+import { eq } from 'drizzle-orm';
+import type { IOrderRepository } from '@/repositories/order/IOrderRepository';
+
+export class OrderRepository implements IOrderRepository {
   async findAll(userId?: number): Promise<Order[]> {
     if (userId) {
       return db.select().from(orders).where(eq(orders.userId, userId)).all() as Order[];
