@@ -96,6 +96,19 @@ describe('AuthService.register', () => {
 
     expect(cartService.mergeOnLogin).toHaveBeenCalledWith('abc', 1);
   });
+
+  it('does not merge cart when sessionId is not provided', async () => {
+    const repo = createMockRepo({
+      findByEmail: vi.fn().mockResolvedValue(undefined),
+      create: vi.fn().mockResolvedValue(createUser()),
+    });
+    const cartService = createMockCartService();
+    const service = new AuthService(repo, createMockTokenService(), cartService);
+
+    await service.register({ email: 'new@nike.com', password: 'pass123', firstName: 'New', lastName: 'User' });
+
+    expect(cartService.mergeOnLogin).not.toHaveBeenCalled();
+  });
 });
 
 describe('AuthService.login', () => {

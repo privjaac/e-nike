@@ -3,6 +3,10 @@ import { OrderController } from '@/controllers/OrderController';
 import type { IOrderService } from '@/services/order/IOrderService';
 import type { Order, OrderWithItems } from '@/domain/Order';
 
+vi.mock('jose', () => ({
+  jwtVerify: vi.fn().mockResolvedValue({ payload: { sub: 'guest', orderId: 2 } }),
+}));
+
 function createContext(overrides: Record<string, unknown> = {}) {
   return {
     req: {
@@ -70,6 +74,24 @@ describe('OrderController.getOrderById', () => {
     await controller.getOrderById(c as any);
 
     expect(c.json).toHaveBeenCalledWith({ success: false, error: 'Unauthorized' }, 401);
+  });
+
+  it('returns order with valid guest token', async () => {
+    const order: OrderWithItems = { ...createOrder({ userId: null }), items: [] };
+    const service = createMockOrderService({ getOrderById: vi.fn().mockResolvedValue(order) });
+    const controller = new OrderController(service);
+    const headerFn = vi.fn().mockImplementation((name: string) => {
+      if (name === 'X-Guest-Token') return 'valid-guest-token';
+      return undefined;
+    });
+    const c = createContext({
+      get: vi.fn().mockReturnValue(undefined),
+      req: { param: vi.fn().mockReturnValue('2'), header: headerFn, json: vi.fn() },
+    });
+
+    await controller.getOrderById(c as any);
+
+    expect(c.json).toHaveBeenCalledWith({ success: true, data: order });
   });
 });
 
