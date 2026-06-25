@@ -9,3 +9,5 @@
 *.md
 node_modules/
 dist/
+/.venv-pdf/
+coverage/
